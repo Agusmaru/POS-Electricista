@@ -1,5 +1,5 @@
 {
-  "passed": 18,
+  "passed": 22,
   "checks": [
     "Modo Lista activo",
     "Lista oculta Local a consultar",
@@ -10,6 +10,10 @@
     "Lista sin desbordamiento en escritorio",
     "Nombre legible en Lista",
     "Descripción legible en Lista",
+    "Cantidad mínima entera",
+    "Cantidad avanza de a uno",
+    "Control rechaza decimales",
+    "Servidor rechaza cantidades decimales",
     "Agregar responde correctamente",
     "Confirmación dentro del catálogo",
     "Catálogo no recarga la página",

@@ -125,6 +125,7 @@ public class PortalController : Controller
         if (producto == null || !producto.Activo) throw new ArgumentException("El producto ya no está disponible.");
         if (!ImagenDisponible(producto.Imagen)) producto.Imagen = "";
         var cantidad = Numero(f,"cantidad",true);
+        if (cantidad != decimal.Truncate(cantidad)) throw new ArgumentException("La cantidad debe ser un número entero.");
         var carrito = ObtenerCarrito();
         var existente = carrito.Items.FirstOrDefault(i => i.ProductoId == producto.Id);
         if (existente == null) carrito.Items.Add(PresupuestoNegocio.DesdeProducto(producto,cantidad,producto.PrecioEstimado ?? 0m,""));
