@@ -49,6 +49,8 @@ public class PortalController : Controller
     private readonly IWebHostEnvironment entorno;
     public PortalController(IWebHostEnvironment entorno) => this.entorno = entorno;
     private PortalModel Modelo(string titulo) => new() { Titulo = titulo, Usuario = usuario, CarritoCantidad = usuario == null ? 0 : ObtenerCarrito(false)?.Items.Count ?? 0 };
+    private bool SolicitaJson() => Request.Headers.Accept.ToString().Contains("application/json", StringComparison.OrdinalIgnoreCase)
+        || Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
@@ -67,6 +69,11 @@ public class PortalController : Controller
         if (executed.Exception is ArgumentException ex && !executed.ExceptionHandled)
         {
             executed.ExceptionHandled = true;
+            if (SolicitaJson())
+            {
+                executed.Result = new JsonResult(new { ok = false, error = ex.Message }) { StatusCode = 400 };
+                return;
+            }
             Response.StatusCode = 400;
             var model = Modelo("Revisá los datos"); model.Error = ex.Message;
             executed.Result = View("Error", model);
@@ -123,7 +130,9 @@ public class PortalController : Controller
         if (existente == null) carrito.Items.Add(PresupuestoNegocio.DesdeProducto(producto,cantidad,producto.PrecioEstimado ?? 0m,""));
         else existente.Cantidad = Math.Min(1000000m, existente.Cantidad + cantidad);
         GuardarCarrito(carrito);
-        TempData["Mensaje"] = producto.Nombre + " se agregó al presupuesto.";
+        string mensaje = producto.Nombre + " se agregó al presupuesto.";
+        if (SolicitaJson()) return Json(new { ok = true, message = mensaje, cartCount = carrito.Items.Count, productId = producto.Id });
+        TempData["Mensaje"] = mensaje;
         string volver = Texto(f,"volver",500);
         return Redirect(volver.StartsWith("/Catalogo",StringComparison.Ordinal) ? volver : "/Catalogo");
     }

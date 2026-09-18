@@ -1,5 +1,5 @@
 {
-  "passed": 14,
+  "passed": 18,
   "checks": [
     "Modo Lista activo",
     "Lista oculta Local a consultar",
@@ -10,6 +10,10 @@
     "Lista sin desbordamiento en escritorio",
     "Nombre legible en Lista",
     "Descripción legible en Lista",
+    "Agregar responde correctamente",
+    "Confirmación dentro del catálogo",
+    "Catálogo no recarga la página",
+    "Contador del carrito se actualiza",
     "Tarjetas conservan los detalles",
     "Tarjetas conservan el precio",
     "Nombre legible en Tarjetas",

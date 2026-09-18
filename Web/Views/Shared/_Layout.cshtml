@@ -13,7 +13,7 @@
         <div id="app-navigation" class="navigation-region">
         <nav aria-label="Navegación principal">
         <span class="nav-caption">ESPACIO DE TRABAJO</span>
-        <a href="/Catalogo" aria-current="@(route == "/Catalogo" ? "page" : null)">Catálogo</a><a class="cart-nav" href="/Carrito" aria-current="@(route == "/Carrito" ? "page" : null)">Carrito @if(Model.CarritoCantidad>0){<span class="cart-badge">@Model.CarritoCantidad</span>}</a><a href="/Presupuestos" aria-current="@(route.StartsWith("/Presupuesto") ? "page" : null)">Presupuestos</a>
+        <a href="/Catalogo" aria-current="@(route == "/Catalogo" ? "page" : null)">Catálogo</a><a class="cart-nav" href="/Carrito" aria-current="@(route == "/Carrito" ? "page" : null)">Carrito <span class="cart-badge @(Model.CarritoCantidad == 0 ? "is-empty" : "")" data-cart-count aria-label="@Model.CarritoCantidad productos en el carrito">@Model.CarritoCantidad</span></a><a href="/Presupuestos" aria-current="@(route.StartsWith("/Presupuesto") ? "page" : null)">Presupuestos</a>
         @if (Model.Usuario.Admin) { <a href="/EditarProducto" aria-current="@(route == "/EditarProducto" ? "page" : null)">Nuevo producto</a><a href="/UsuariosCatalogo" aria-current="@(route == "/UsuariosCatalogo" ? "page" : null)">Usuarios</a> }
         </nav>
         <div class="sidebar-note"><strong>Materiales para<br>cada instalación</strong><p>Armá tu lista.<br>Prepará tu próxima obra.</p></div>
