@@ -212,6 +212,15 @@ tbody tr:hover{background:#fafbfd}
 .authenticated .budget-card-actions{margin-left:0}
 .budget-card-actions form{margin:0}
 .budget-card-actions .button,.budget-card-actions button{min-height:40px;padding:8px 12px;font-size:13px}
+.budget-detail-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.share-dialog{width:min(92vw,520px);padding:0;border:0;border-radius:14px;box-shadow:0 22px 70px #071a2d40;color:var(--ink)}
+.share-dialog::backdrop{background:#071a2d99}
+.share-dialog form{position:relative;padding:28px;margin:0}
+.share-dialog h2{margin:0 40px 8px 0}
+.share-dialog p{color:var(--muted);margin-bottom:22px}
+.share-dialog-close{position:absolute;right:14px;top:12px;width:40px;min-height:40px;padding:0;font-size:25px}
+.share-dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.share-dialog-actions .button{width:100%}
 .budget-empty{text-align:center;padding:54px 24px}
 .budget-empty>div{font-size:44px;margin-bottom:10px}
 .budget-empty p{color:var(--muted);margin-bottom:22px}
@@ -250,6 +259,9 @@ tbody tr:hover{background:#fafbfd}
  .budget-card-head{align-items:flex-start;flex-direction:column}
  .budget-card-actions{display:grid;grid-template-columns:1fr 1fr}
  .budget-card-actions form,.budget-card-actions .button,.budget-card-actions button{width:100%}
+ .budget-detail-actions{display:grid;grid-template-columns:1fr;width:100%}
+ .budget-detail-actions .button{width:100%}
+ .share-dialog-actions{grid-template-columns:1fr}
 }
 .users-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
 .users-layout.with-editor{grid-template-columns:minmax(0,1fr) minmax(300px,380px)}

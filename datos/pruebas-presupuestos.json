@@ -1,5 +1,5 @@
 {
-  "passed": 15,
+  "passed": 20,
   "checks": [
     "Historial abre correctamente",
     "Resumen visible",
@@ -10,7 +10,12 @@
     "Número de presupuesto visible",
     "Fecha y hora visibles",
     "Descarga PDF directa",
+    "Acción Descargar y enviar visible",
     "Acciones ocupan el ancho de la tarjeta",
+    "Descarga y enviar genera el PDF",
+    "Opción WhatsApp preparada",
+    "Opción correo preparada",
+    "Acción disponible en el detalle",
     "Búsqueda encuentra la obra",
     "Resultado coincide con búsqueda",
     "Orden por antiguos funciona",

@@ -25,6 +25,46 @@
 })();
 
 (() => {
+    const buttons = document.querySelectorAll('[data-share-budget]');
+    const dialog = document.querySelector('[data-share-dialog]');
+    if (!buttons.length || !dialog) return;
+    const whatsapp = dialog.querySelector('[data-share-whatsapp]');
+    const email = dialog.querySelector('[data-share-email]');
+    const download = (blob, filename) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+    };
+    buttons.forEach(button => button.addEventListener('click', async () => {
+        const originalText = button.textContent;
+        button.disabled = true; button.textContent = 'Preparando PDF…';
+        try {
+            const id = button.dataset.budgetId, name = button.dataset.budgetName;
+            const response = await fetch(`/DescargarPdf?id=${encodeURIComponent(id)}`);
+            if (!response.ok) throw new Error('No se pudo generar el PDF.');
+            const blob = await response.blob();
+            const filename = `orden-presupuesto-${String(id).padStart(6, '0')}.pdf`;
+            download(blob, filename);
+            const file = new File([blob], filename, { type: 'application/pdf' });
+            const text = `Te comparto el presupuesto ${name} (Nº ${String(id).padStart(6, '0')}).`;
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try { await navigator.share({ title: `Presupuesto ${name}`, text, files: [file] }); }
+                catch (error) { if (error.name !== 'AbortError') throw error; }
+            } else {
+                whatsapp.href = `https://wa.me/?text=${encodeURIComponent(text + ' Adjuntá el PDF descargado en este mensaje.')}`;
+                email.href = `mailto:?subject=${encodeURIComponent('Presupuesto ' + name)}&body=${encodeURIComponent(text + '\n\nAdjuntá el PDF descargado a este correo.')}`;
+                dialog.showModal();
+            }
+        } catch (error) {
+            window.alert(error.message || 'No se pudo preparar el presupuesto.');
+        } finally {
+            button.disabled = false; button.textContent = originalText;
+        }
+    }));
+})();
+
+(() => {
     const results = document.getElementById('catalog-results');
     if (!results || !window.fetch || !window.FormData) return;
     const feedback = document.getElementById('catalog-feedback');

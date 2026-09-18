@@ -1,7 +1,8 @@
 @model PortalModel
 @{var p=Model.Presupuesto;}
 <div class="intro"><div class="eyebrow">ORDEN / PRESUPUESTO Nº @p.Id.ToString("D6")</div><h1>@p.Nombre</h1><p>La orden quedó guardada. Podés ajustar sus materiales o descargar el PDF.</p></div>
-<div class="toolbar"><a href="/Presupuestos">← Volver a presupuestos</a>@if(p.Items.Count>0){<a class="button primary" href="/DescargarPdf?id=@p.Id">Descargar PDF</a>}</div>
+<div class="toolbar"><a href="/Presupuestos">← Volver a presupuestos</a>@if(p.Items.Count>0){<div class="budget-detail-actions"><a class="button primary" href="/DescargarPdf?id=@p.Id">Descargar PDF</a><button class="button budget-share" type="button" data-share-budget data-budget-id="@p.Id" data-budget-name="@p.Nombre">Descargar y enviar</button></div>}</div>
+<dialog class="share-dialog" data-share-dialog><form method="dialog"><button class="share-dialog-close quiet" aria-label="Cerrar">×</button><h2>PDF descargado</h2><p>Elegí cómo avisar que vas a compartir el presupuesto. Adjuntá el PDF que acaba de descargarse.</p><div class="share-dialog-actions"><a class="button primary" data-share-whatsapp target="_blank" rel="noopener">Enviar por WhatsApp</a><a class="button" data-share-email>Enviar por correo</a></div><button class="button" value="cancel">Cerrar</button></form></dialog>
 @if(Context.Request.Query["confirmar"]=="1"){
 <section class="alert danger">¿Eliminar este presupuesto del historial?<form method="post" action="/Presupuestos">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><input type="hidden" name="revision" value="@p.Revision"><button name="accion" value="eliminar">Sí, eliminar</button><a href="/Presupuesto?id=@p.Id">Cancelar</a></form></section>
 }
