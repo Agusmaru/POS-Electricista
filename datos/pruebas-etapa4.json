@@ -1,0 +1,18 @@
+{
+  "passed": 13,
+  "checks": [
+    "Inicio de sesión",
+    "Botón Ver carrito correctamente renderizado",
+    "Catálogo ofrece agregar productos",
+    "Contador del carrito",
+    "Carrito persiste al navegar",
+    "Pantalla de revisión muestra productos",
+    "Nombre de obra automático",
+    "Nombre de obra editable",
+    "Actualización de cantidad",
+    "Total aproximado visible",
+    "Carrito móvil sin desbordamiento",
+    "Eliminación de producto",
+    "Vaciar carrito"
+  ]
+}

@@ -1,0 +1,31 @@
+@model PortalModel
+@{ var route = Context.Request.Path.Value ?? ""; }
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>@Model.Titulo | Electricidad</title><link rel="icon" type="image/svg+xml" href="~/electricidad.svg" asp-append-version="true"><link rel="stylesheet" href="~/portal.css" asp-append-version="true"><link rel="stylesheet" href="~/responsive.css" asp-append-version="true"><script src="~/portal.js" asp-append-version="true" defer></script></head>
+<body class="@(Model.Usuario != null ? "authenticated" : "guest")">
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+<header class="app-header">
+    <a class="brand" href="/Catalogo"><span class="bolt" aria-hidden="true"><img src="~/electricidad.svg" alt="" width="32" height="32"></span><span>ELECTRICIDAD<small>CATÁLOGO PROFESIONAL</small></span></a>
+    @if (Model.Usuario != null)
+    {
+        <button class="menu-toggle" type="button" aria-controls="app-navigation" aria-expanded="false"><span aria-hidden="true">☰</span> Menú</button>
+        <div id="app-navigation" class="navigation-region">
+        <nav aria-label="Navegación principal">
+        <span class="nav-caption">ESPACIO DE TRABAJO</span>
+        <a href="/Catalogo" aria-current="@(route == "/Catalogo" ? "page" : null)">Catálogo</a><a class="cart-nav" href="/Carrito" aria-current="@(route == "/Carrito" ? "page" : null)">Carrito @if(Model.CarritoCantidad>0){<span class="cart-badge">@Model.CarritoCantidad</span>}</a><a href="/Presupuestos" aria-current="@(route.StartsWith("/Presupuesto") ? "page" : null)">Presupuestos</a>
+        @if (Model.Usuario.Admin) { <a href="/EditarProducto" aria-current="@(route == "/EditarProducto" ? "page" : null)">Nuevo producto</a><a href="/UsuariosCatalogo" aria-current="@(route == "/UsuariosCatalogo" ? "page" : null)">Usuarios</a> }
+        </nav>
+        <div class="sidebar-note"><strong>Materiales para<br>cada instalación</strong><p>Armá tu lista.<br>Prepará tu próxima obra.</p></div>
+        <div class="identity"><a href="/Cuenta">@Model.Usuario.Nombre</a><small>@(Model.Usuario.Admin ? "Administrador" : "Asesor")</small></div>
+        <form class="logout" method="post" action="/Cuenta">@Html.AntiForgeryToken()<button class="quiet" name="accion" value="salir">Cerrar sesión</button></form>
+        </div>
+    }
+</header>
+<main id="contenido" tabindex="-1">
+@if (!string.IsNullOrEmpty(Model.Error)) { <div class="alert danger" role="alert">@Model.Error</div> }
+@if (TempData["Mensaje"] is string message) { <div class="alert" role="status">@message</div> }
+@RenderBody()
+</main>
+<footer>Electricidad · Catálogo y presupuestos de materiales eléctricos</footer>
+</body></html>

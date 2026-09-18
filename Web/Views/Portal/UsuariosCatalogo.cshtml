@@ -1,0 +1,26 @@
+@model PortalModel
+<div class="intro"><div class="eyebrow">ADMINISTRACIÓN / ACCESOS</div><h1>Usuarios</h1><p>Gestioná quién puede administrar el catálogo y preparar presupuestos.</p></div>
+<div class="toolbar"><span class="count">@Model.Total usuarios</span><a class="button primary" href="/UsuariosCatalogo?nuevo=true">+ Nuevo usuario</a></div>
+<form class="filters" method="get" action="/UsuariosCatalogo">
+<label>Nombre o correo<input name="q" value="@Model.Q" maxlength="200"></label>
+<label>Rol<select name="rol"><option value="">Todos</option><option value="admin" selected="@(Model.Rol=="admin")">Administrador</option><option value="asesor" selected="@(Model.Rol=="asesor")">Asesor</option></select></label>
+<label>Estado<select name="estado"><option value="">Todos</option><option value="activo" selected="@(Model.Estado=="activo")">Activos</option><option value="inactivo" selected="@(Model.Estado=="inactivo")">Inactivos</option></select></label>
+<button class="primary">Buscar</button><a href="/UsuariosCatalogo">Limpiar</a>
+</form>
+<div class="users-layout @(Model.UsuarioEditado!=null?"with-editor":"")">
+<section class="users-list" aria-label="Listado de usuarios">
+@foreach(var u in Model.Usuarios){
+<article class="user-card"><span class="user-avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(u.Nombre)?"?":u.Nombre.Substring(0,1).ToUpperInvariant())</span><div class="user-summary"><strong>@u.Nombre</strong><a href="mailto:@u.Email">@u.Email</a><div class="user-badges"><span class="tag">@(u.Admin?"Administrador":"Asesor")</span><span class="status @(u.Activo?"active":"inactive")">@(u.Activo?"Activo":"Inactivo")</span>@if(u.Id==Model.Usuario.Id){<span class="tag">Tu cuenta</span>}</div></div><div class="user-actions"><a class="button" href="@Url.Action("UsuariosCatalogo",new {q=Model.Q,rol=Model.Rol,estado=Model.Estado,editar=u.Id})">Editar</a><form method="post" action="/UsuariosCatalogo">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@u.Id"><button class="@(u.Activo?"dangertext":"")" name="accion" value="estado" disabled="@(u.Id==Model.Usuario.Id)">@(u.Activo?"Desactivar":"Activar")</button></form></div></article>
+}
+@if(Model.Usuarios.Count==0){<div class="panel"><p>No hay usuarios con esos filtros.</p></div>}
+</section>
+@if(Model.UsuarioEditado!=null){var e=Model.UsuarioEditado;var propio=e.Id==Model.Usuario.Id;
+<aside class="panel user-editor"><div class="editor-heading"><h2>@(e.Id==0?"Nuevo usuario":"Editar usuario")</h2><a href="/UsuariosCatalogo" aria-label="Cerrar formulario">×</a></div><form method="post" action="/UsuariosCatalogo">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@e.Id">
+<label>Nombre<input name="nombre" value="@e.Nombre" maxlength="120" required></label>
+<label>Correo<input name="email" type="email" value="@e.Email" maxlength="200" required></label>
+<label>Rol<select name="rol" disabled="@propio"><option value="asesor" selected="@(!e.Admin)">Asesor</option><option value="admin" selected="@e.Admin">Administrador</option></select></label>@if(propio){<input type="hidden" name="rol" value="admin">}
+<label>@(e.Id==0?"Contraseña":"Nueva contraseña (opcional)")<input name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required="@(e.Id==0)"></label>@if(e.Id>0){<small>Si queda vacía, la contraseña actual no cambia.</small>}
+<label class="check"><input type="checkbox" name="activo" value="1" checked="@e.Activo" disabled="@propio">Usuario activo</label>@if(propio){<input type="hidden" name="activo" value="1"><small>Tu propia cuenta debe conservar el rol administrador y permanecer activa.</small>}
+<div class="actions"><button class="primary" name="accion" value="guardar">@(e.Id==0?"Crear usuario":"Guardar cambios")</button><a class="button" href="/UsuariosCatalogo">Cancelar</a></div>
+</form></aside>}
+</div>

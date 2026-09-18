@@ -1,0 +1,8 @@
+@model PortalModel
+<section class="login">
+<div class="intro"><div class="eyebrow">TU PRÓXIMA OBRA EMPIEZA ACÁ</div><h1>Bienvenido</h1><p>Ingresá para buscar materiales, preparar presupuestos y compartir tu lista de compra.</p></div>
+<form method="post" action="/Login">@Html.AntiForgeryToken()
+<label>Email<input name="email" type="email" maxlength="200" autocomplete="username" required></label>
+<label>Contraseña<input name="password" type="password" maxlength="128" autocomplete="current-password" required></label>
+<button class="primary">Ingresar</button>
+</form></section>

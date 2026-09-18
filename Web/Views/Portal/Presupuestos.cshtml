@@ -1,0 +1,13 @@
+@model PortalModel
+<div class="intro"><div class="eyebrow">LISTAS GUARDADAS</div><h1>Presupuestos</h1><p>Tus materiales, cantidades y precios, organizados por obra.</p></div>
+<section class="panel budget-start"><div><h2>Crear un nuevo presupuesto</h2><p>Elegí los productos desde el catálogo y revisalos en el carrito antes de generar la orden.</p></div><a class="button primary" href="/Catalogo">Ir al catálogo</a></section>
+<div class="cards">
+@foreach(var p in Model.Presupuestos){
+<article class="panel"><div class="eyebrow">Nº @p.Id.ToString("D6") · @p.Fecha.AddHours(-3).ToString("dd/MM/yyyy")</div>
+<h2><a href="/Presupuesto?id=@p.Id">@p.Nombre</a></h2><small>Preparó: @p.Autor</small>
+@if(p.EsPrueba){<p><span class="tag">Prueba · precios ficticios</span></p>}
+<div class="actions"><a href="/Presupuesto?id=@p.Id">Abrir</a><form method="post" action="/Presupuestos">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><button name="accion" value="duplicar">Duplicar</button></form><a href="/Presupuesto?id=@p.Id&confirmar=1">Eliminar</a></div>
+</article>
+}
+@if(Model.Presupuestos.Count==0){<p>Todavía no hay presupuestos. Creá el primero arriba.</p>}
+</div>

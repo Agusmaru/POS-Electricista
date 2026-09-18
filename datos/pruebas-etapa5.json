@@ -1,0 +1,19 @@
+{
+  "passed": 13,
+  "checks": [
+    "Inicio de sesión",
+    "Endpoint de salud disponible",
+    "Confirmación habilitada",
+    "Orden guardada con número",
+    "Confirmación visible",
+    "Campo Casa de Electricidad eliminado",
+    "Orden disponible en historial",
+    "Descarga PDF válida",
+    "Archivo PDF reconocido",
+    "PDF incluye total y aviso",
+    "PDF sin Casa de Electricidad",
+    "Orden móvil sin desbordamiento",
+    "Orden temporal eliminada del historial"
+  ],
+  "pdf": "lista de compra de test.pdf"
+}

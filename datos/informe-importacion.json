@@ -1,0 +1,41 @@
+{
+  "archivo": "C:\\Users\\agustinm\\Documents\\LABO 3\\PROYECTO ELECTRICISTAS\\CATALOGADOR.xlsm",
+  "sha256": "bbd910ff02bb9d9e21470fd2e9ef8fff31def0318a17653ee988ea45aa5e615b",
+  "productos": 1677,
+  "por_hoja": {
+    "ARGENPLAS": 60,
+    "SAMET": 194,
+    "ELECE": 169,
+    "Genrod S9000": 210,
+    "LCT": 269,
+    "ZOLODA Cablecanal": 42,
+    "ZOLODA Borneras": 56,
+    "ZOLODA Identificador": 86,
+    "KALOP": 8,
+    "DAISA": 231,
+    "SISTELECTRIC": 207,
+    "ARGEFLEX": 145
+  },
+  "filas_excluidas": [
+    {
+      "hoja": "KALOP",
+      "fila": 16,
+      "valores": [
+        "#VALUE!",
+        "",
+        "",
+        ""
+      ],
+      "motivo": "Fila incompleta o error de Excel"
+    }
+  ],
+  "criterios": [
+    "No se ejecutaron macros.",
+    "No hay precios en el origen: se dejan nulos (a consultar).",
+    "Tipo queda Sin clasificar para completar por el administrador.",
+    "Unidad m para cable unipolar y subterráneo; unidad para los demás productos, a revisar según modalidad de compra.",
+    "Se preservan códigos de texto y ceros del formato numérico. No se reconstruyen ceros perdidos en el archivo.",
+    "La carga inicial identifica hoja y fila, y no sobrescribe ediciones existentes al volver a ejecutarla.",
+    "No se importan imágenes ni fórmulas de imagen con errores."
+  ]
+}

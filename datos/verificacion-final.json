@@ -1,0 +1,10 @@
+[
+  {
+    "rol": "admin",
+    "segundos_login_y_catalogo": 0.52
+  },
+  {
+    "rol": "asesor",
+    "segundos_login_y_catalogo": 0.09
+  }
+]

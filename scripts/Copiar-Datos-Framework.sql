@@ -1,0 +1,18 @@
+﻿USE ELECTRICISTAS_CORE10_DB;
+SET XACT_ABORT ON;
+SET QUOTED_IDENTIFIER ON;
+BEGIN TRANSACTION;
+IF EXISTS(SELECT 1 FROM EC_Usuarios) OR EXISTS(SELECT 1 FROM EC_Productos) OR EXISTS(SELECT 1 FROM EC_Presupuestos) THROW 50001, 'La base destino ya tiene datos. No se sobrescriben.', 1;
+SET IDENTITY_INSERT EC_Usuarios ON;
+INSERT INTO EC_Usuarios (Id,Nombre,Email,PasswordHash,EsAdmin,Activo,Fallos,BloqueadoHasta) SELECT Id,Nombre,Email,PasswordHash,EsAdmin,Activo,Fallos,BloqueadoHasta FROM ELECTRICISTAS_DB.dbo.EC_Usuarios;
+SET IDENTITY_INSERT EC_Usuarios OFF;
+SET IDENTITY_INSERT EC_Productos ON;
+INSERT INTO EC_Productos (Id,Nombre,Descripcion,Marca,Categoria,CodigoCatalogo,CodigoLocal,Tipo,Unidad,PrecioEstimado,Activo,Origen,ClaveOrigen) SELECT Id,Nombre,Descripcion,Marca,Categoria,CodigoCatalogo,CodigoLocal,Tipo,Unidad,PrecioEstimado,Activo,Origen,ClaveOrigen FROM ELECTRICISTAS_DB.dbo.EC_Productos;
+SET IDENTITY_INSERT EC_Productos OFF;
+SET IDENTITY_INSERT EC_Presupuestos ON;
+INSERT INTO EC_Presupuestos (Id,UsuarioId,Nombre,Local,Observaciones,Fecha,EsPrueba,Revision,Activo) SELECT Id,UsuarioId,Nombre,Local,Observaciones,Fecha,EsPrueba,Revision,Activo FROM ELECTRICISTAS_DB.dbo.EC_Presupuestos;
+SET IDENTITY_INSERT EC_Presupuestos OFF;
+SET IDENTITY_INSERT EC_Items ON;
+INSERT INTO EC_Items (Id,PresupuestoId,ProductoId,Nombre,Descripcion,Marca,CodigoCatalogo,CodigoLocal,Tipo,Unidad,Cantidad,PrecioUnitario,Observaciones) SELECT Id,PresupuestoId,ProductoId,Nombre,Descripcion,Marca,CodigoCatalogo,CodigoLocal,Tipo,Unidad,Cantidad,PrecioUnitario,Observaciones FROM ELECTRICISTAS_DB.dbo.EC_Items;
+SET IDENTITY_INSERT EC_Items OFF;
+COMMIT;

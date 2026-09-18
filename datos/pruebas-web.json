@@ -1,0 +1,43 @@
+{
+  "resultado": "OK",
+  "pruebas": [
+    "Catálogo requiere autenticación",
+    "Login asesor",
+    "Login admin",
+    "Asesor no puede administrar productos",
+    "Asesor no puede crear usuarios",
+    "Pantallas anteriores del POS bloqueadas",
+    "Catálogo completo de 1677 productos",
+    "Filtros por código y marca",
+    "Filtro por tipo",
+    "PDF generado por la aplicación",
+    "PDF contiene total, marca de prueba y aclaración",
+    "PDF paginado sin duplicar renglones",
+    "Protección CSRF",
+    "Crear presupuesto",
+    "No exporta presupuestos vacíos",
+    "Cantidad decimal y redondeo monetario",
+    "Rechaza edición concurrente obsoleta",
+    "Rechaza cantidad cero",
+    "Rechaza precio negativo",
+    "Precio faltante no se confunde con cero",
+    "PDF parcial identifica importes pendientes",
+    "Editar renglón guardado",
+    "Quitar renglón",
+    "Duplicar presupuesto y conservar materiales",
+    "Aislamiento de presupuestos entre usuarios",
+    "Aislamiento de descarga PDF",
+    "Administrador crea producto",
+    "Baja lógica oculta producto al asesor",
+    "Eliminar presupuesto QA 2",
+    "Eliminar presupuesto QA 3",
+    "Eliminar presupuesto QA 4",
+    "Cerrar sesión invalida acceso"
+  ],
+  "producto_qa": 1678,
+  "presupuestos_qa": [
+    2,
+    3,
+    4
+  ]
+}

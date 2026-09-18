@@ -1,0 +1,20 @@
+const fs=require('fs');const path=require('path');const {chromium}=require(process.env.PLAYWRIGHT_PACKAGE||'playwright');
+const root=path.resolve(__dirname,'..'),base=process.env.APP_URL||'http://localhost:5090';
+const password=[...fs.readFileSync(path.join(root,'ACCESOS-LOCALES.txt'),'utf8').matchAll(/Contraseña: (.+)/g)][0][1].trim(),ok=[];
+function check(value,name){if(!value)throw new Error(name);ok.push(name)}
+(async()=>{const browser=await chromium.launch({headless:true,channel:'msedge'});const context=await browser.newContext({viewport:{width:1440,height:900}}),page=await context.newPage();try{
+ await page.goto(base+'/Login');await page.locator('[name=email]').fill('admin@electricistas.local');await page.locator('[name=password]').fill(password);await Promise.all([page.waitForURL('**/Catalogo'),page.getByRole('button',{name:'Ingresar',exact:true}).click()]);check(page.url().includes('/Catalogo'),'Inicio de sesión');
+ await page.goto(base+'/Catalogo?vista=tarjetas');check((await page.locator('.catalog-toolbar>a.primary').textContent()).trim()==='Ver carrito','Botón Ver carrito correctamente renderizado');check(await page.locator('.catalog-mode-tarjetas .catalog-add').count()>=2,'Catálogo ofrece agregar productos');
+ await Promise.all([page.waitForURL(/Catalogo/),page.locator('.catalog-add').nth(0).getByRole('button',{name:/Agregar/}).click()]);
+ await Promise.all([page.waitForURL(/Catalogo/),page.locator('.catalog-add').nth(1).getByRole('button',{name:/Agregar/}).click()]);
+ check(await page.locator('.catalog-toolbar .cart-badge').textContent()==='2','Contador del carrito');await page.screenshot({path:path.join(root,'datos','etapa4-catalogo.png'),fullPage:true});
+ await page.goto(base+'/UsuariosCatalogo');check(await page.locator('nav .cart-badge').textContent()==='2','Carrito persiste al navegar');
+ await page.goto(base+'/Carrito');check(await page.locator('.cart-item').count()===2,'Pantalla de revisión muestra productos');check((await page.locator('.work-name [name=nombre]').inputValue()).startsWith('Instalación eléctrica '),'Nombre de obra automático');
+ await page.locator('.work-name [name=nombre]').fill('Obra de prueba etapa 4');await Promise.all([page.waitForURL('**/Carrito'),page.getByRole('button',{name:'Guardar nombre'}).click()]);check(await page.locator('.work-name [name=nombre]').inputValue()==='Obra de prueba etapa 4','Nombre de obra editable');
+ const first=page.locator('.cart-item').first();await first.locator('[name=cantidad]').fill('3');await Promise.all([page.waitForURL('**/Carrito'),first.getByRole('button',{name:'Actualizar'}).click()]);check(await page.locator('.cart-item').first().locator('[name=cantidad]').inputValue()==='3','Actualización de cantidad');
+ check((await page.locator('.cart-total').textContent()).includes('$ 0,00'),'Total aproximado visible');await page.screenshot({path:path.join(root,'datos','etapa4-carrito.png'),fullPage:true});
+ await page.setViewportSize({width:390,height:844});await page.goto(base+'/Carrito');check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Carrito móvil sin desbordamiento');await page.screenshot({path:path.join(root,'datos','etapa4-carrito-movil.png'),fullPage:true});
+ await page.setViewportSize({width:1440,height:900});await page.goto(base+'/Carrito');const second=page.locator('.cart-item').nth(1);await Promise.all([page.waitForURL('**/Carrito'),second.getByRole('button',{name:'Quitar'}).click()]);check(await page.locator('.cart-item').count()===1,'Eliminación de producto');
+ await Promise.all([page.waitForURL('**/Carrito'),page.getByRole('button',{name:'Vaciar carrito'}).click()]);check(await page.getByRole('heading',{name:'Tu carrito está vacío'}).count()===1,'Vaciar carrito');
+ fs.writeFileSync(path.join(root,'datos','pruebas-etapa4.json'),JSON.stringify({passed:ok.length,checks:ok},null,2));console.log(`${ok.length} comprobaciones correctas.`);
+}finally{await context.close();await browser.close()}})().catch(error=>{console.error(error);process.exitCode=1});

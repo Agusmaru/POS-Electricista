@@ -1,0 +1,19 @@
+{
+  "passed": 14,
+  "checks": [
+    "Columnas solicitadas",
+    "Precios existentes inicializados en cero",
+    "Buscador devuelve resultados por fabricante",
+    "Filtro por fabricante",
+    "Cambio a vista de tarjetas",
+    "Tarjetas muestran el espacio de imagen",
+    "Preferencia de vista persistente",
+    "Lista oculta las imágenes",
+    "Lista conserva formato de tabla en escritorio",
+    "Imagen visible una sola vez en catálogo",
+    "Archivo de imagen accesible",
+    "Imagen eliminada desde ABM",
+    "Archivo reemplazado eliminado del servidor",
+    "Catálogo móvil sin desbordamiento"
+  ]
+}

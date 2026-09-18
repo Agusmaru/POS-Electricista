@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Flux Core 10": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "Login",
+      "applicationUrl": "http://localhost:5088",
+      "environmentVariables": { "ASPNETCORE_ENVIRONMENT": "Development" }
+    }
+  }
+}

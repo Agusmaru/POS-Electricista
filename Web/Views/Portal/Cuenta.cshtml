@@ -1,0 +1,5 @@
+@model PortalModel
+<div class="intro"><div class="eyebrow">MI CUENTA</div><h1>Cambiar contraseña</h1><p>Después de guardar, iniciá sesión con la nueva contraseña.</p></div>
+<section class="panel narrow"><form method="post" action="/Cuenta">@Html.AntiForgeryToken()
+<label>Contraseña actual<input name="actual" type="password" maxlength="128" autocomplete="current-password" required></label><label>Nueva contraseña (mínimo 12 caracteres)<input name="nueva" type="password" minlength="12" maxlength="128" autocomplete="new-password" required></label><button class="primary" name="accion" value="password">Guardar contraseña</button>
+</form></section>

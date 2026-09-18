@@ -1,0 +1,19 @@
+@model PortalModel
+@{var p=Model.Producto;}
+<div class="intro"><div class="eyebrow">ADMINISTRACIÓN</div><h1>@Model.Titulo</h1><p>El precio puede quedar vacío hasta confirmarlo. Los presupuestos guardados conservan sus valores.</p></div>
+<section class="panel product-editor"><form method="post" enctype="multipart/form-data" action="/EditarProducto?id=@p.Id">@Html.AntiForgeryToken()
+<div class="grid2">
+<label>Producto<input name="nombre" value="@p.Nombre" maxlength="250" required></label>
+<label>Marca<input name="marca" value="@p.Marca.Nombre" maxlength="120" required></label>
+<label>Código de catálogo<input name="codigo" value="@p.CodigoCatalogo" maxlength="160"></label>
+<label>Código del local (opcional)<input name="local" value="@p.CodigoLocal" maxlength="160"></label>
+<label>Tipo<input name="tipo" value="@p.Tipo" maxlength="120" required></label>
+<label>Familia / categoría<input name="categoria" value="@p.Categoria.Nombre" maxlength="120"></label>
+<label>Unidad (unidad, m, rollo...)<input name="unidad" value="@p.Unidad" maxlength="30" required></label>
+<label>Precio estimado ARS<input name="precio" type="number" min="0" max="1000000000" step="0.01" value="@PortalModel.Numero(p.PrecioEstimado)"></label>
+</div>
+<label>Descripción<textarea name="descripcion" maxlength="1500" rows="3">@p.Descripcion</textarea></label>
+<fieldset class="image-editor"><legend>Imagen del producto</legend><div class="image-editor-content">@if(string.IsNullOrEmpty(p.Imagen)){<span class="product-image-preview product-image-placeholder">Sin imagen</span>}else{<img class="product-image-preview" src="~/uploads/productos/@p.Imagen" alt="Imagen actual de @p.Nombre">}<div><label>Nueva imagen<input name="imagen" type="file" accept="image/jpeg,image/png,image/webp"></label><small>JPG, PNG o WebP. Tamaño máximo: 5 MB. Al guardar reemplazará la imagen actual.</small>@if(!string.IsNullOrEmpty(p.Imagen)){<label class="check"><input type="checkbox" name="quitarImagen" value="1">Quitar la imagen actual</label>}</div></div></fieldset>
+<label class="check"><input type="checkbox" name="activo" value="1" checked="@p.Activo">Disponible en el catálogo</label>
+<div class="actions"><button class="primary">Guardar producto</button><a href="/Catalogo">Volver</a></div>
+</form></section>

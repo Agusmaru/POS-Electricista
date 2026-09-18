@@ -1,0 +1,17 @@
+{
+  "passed": 12,
+  "checks": [
+    "Administrador inicia sesión",
+    "Listado de usuarios",
+    "Filtro por rol",
+    "Edición de nombre y rol",
+    "Restablecimiento de contraseña y rol aplicado",
+    "Desactivación lógica",
+    "Usuario inactivo no inicia sesión",
+    "Reactivación",
+    "Controles propios protegidos",
+    "Servidor impide degradar o desactivar la cuenta propia",
+    "Asesor no accede al ABM",
+    "ABM móvil sin desbordamiento"
+  ]
+}
