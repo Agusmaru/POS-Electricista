@@ -1,0 +1,13 @@
+const fs=require('fs');const path=require('path');const {chromium}=require(process.env.PLAYWRIGHT_PACKAGE||'playwright');
+const root=path.resolve(__dirname,'..'),base=process.env.APP_URL||'http://localhost:5090';
+const password=[...fs.readFileSync(path.join(root,'ACCESOS-LOCALES.txt'),'utf8').matchAll(/Contraseña: (.+)/g)][0][1].trim(),checks=[];
+function check(value,label){if(!value)throw new Error(label);checks.push(label)}
+(async()=>{const browser=await chromium.launch({headless:true,channel:'msedge'});const context=await browser.newContext({viewport:{width:1440,height:900}}),page=await context.newPage();try{
+ await page.goto(base+'/Login');await page.locator('[name=email]').fill('admin@electricistas.local');await page.locator('[name=password]').fill(password);await Promise.all([page.waitForURL('**/Catalogo'),page.getByRole('button',{name:'Ingresar',exact:true}).click()]);
+ await page.goto(base+'/Catalogo?vista=lista');const table=page.locator('.catalog-mode-lista');check(await table.count()===1,'Modo Lista activo');
+ check(!await table.locator('.catalog-code-extra').first().isVisible(),'Lista oculta Local a consultar');check(!await table.locator('.catalog-brand-extra').first().isVisible(),'Lista oculta Sin clasificar');check(!await table.locator('.catalog-description-extra').first().isVisible(),'Lista oculta Unidad');
+ const row=table.locator('tbody tr').first();await page.screenshot({path:path.join(root,'datos','catalogo-lista-corregida.png'),fullPage:false});const centers=await row.locator('.catalog-add input[name=cantidad],.catalog-add button,.edit-product').evaluateAll(elements=>elements.map(e=>{const r=e.getBoundingClientRect();return Math.round(r.top+r.height/2)}));check(Math.max(...centers)-Math.min(...centers)<=2,'Acciones alineadas en una fila');check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Lista sin desbordamiento en escritorio');
+ await page.getByRole('link',{name:'Tarjetas'}).click();check(await page.locator('.catalog-mode-tarjetas .catalog-brand-extra').first().isVisible(),'Tarjetas conservan los detalles');
+ await page.setViewportSize({width:390,height:844});await page.goto(base+'/Catalogo?vista=lista');check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Lista sin desbordamiento en celular');
+ fs.writeFileSync(path.join(root,'datos','pruebas-lista-catalogo.json'),JSON.stringify({passed:checks.length,checks},null,2));console.log(`${checks.length} comprobaciones correctas.`);
+}finally{await context.close();await browser.close()}})().catch(error=>{console.error(error);process.exitCode=1});
