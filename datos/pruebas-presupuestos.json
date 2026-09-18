@@ -1,0 +1,20 @@
+{
+  "passed": 15,
+  "checks": [
+    "Historial abre correctamente",
+    "Resumen visible",
+    "Buscador disponible",
+    "Filtro por tipo disponible",
+    "Ordenamiento disponible",
+    "Sin desbordamiento en escritorio",
+    "Número de presupuesto visible",
+    "Fecha y hora visibles",
+    "Descarga PDF directa",
+    "Acciones ocupan el ancho de la tarjeta",
+    "Búsqueda encuentra la obra",
+    "Resultado coincide con búsqueda",
+    "Orden por antiguos funciona",
+    "Sin desbordamiento en celular",
+    "Tarjetas en una columna móvil"
+  ]
+}

@@ -29,6 +29,7 @@ public class PortalModel
     public string Tipo { get; set; } = "";
     public string Rol { get; set; } = "";
     public string Estado { get; set; } = "";
+    public string Orden { get; set; } = "";
     public bool Inactivos { get; set; }
     public int Pagina { get; set; } = 1;
     public int Paginas { get; set; } = 1;
@@ -210,7 +211,25 @@ public class PortalController : Controller
     }
 
     [HttpGet("/Presupuestos")]
-    public IActionResult Presupuestos() { var m = Modelo("Presupuestos"); m.Presupuestos = presupuestos.Listar(usuario); return View(m); }
+    public IActionResult Presupuestos(string q = "", string tipo = "", string orden = "recientes")
+    {
+        q = (q ?? "").Trim(); tipo = (tipo ?? "").Trim(); orden = (orden ?? "").Trim();
+        if (q.Length > 160 || tipo is not ("" or "normal" or "prueba") || orden is not ("recientes" or "antiguos" or "nombre"))
+            throw new ArgumentException("Los filtros de presupuestos no son válidos.");
+        var lista = presupuestos.Listar(usuario);
+        var compare = CultureInfo.GetCultureInfo("es-AR").CompareInfo;
+        if (q != "") lista = lista.Where(p => compare.IndexOf($"{p.Id:D6} {p.Nombre} {p.Autor}", q, CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) >= 0).ToList();
+        if (tipo == "normal") lista = lista.Where(p => !p.EsPrueba).ToList();
+        else if (tipo == "prueba") lista = lista.Where(p => p.EsPrueba).ToList();
+        lista = orden switch
+        {
+            "antiguos" => lista.OrderBy(p => p.Id).ToList(),
+            "nombre" => lista.OrderBy(p => p.Nombre).ThenByDescending(p => p.Id).ToList(),
+            _ => lista.OrderByDescending(p => p.Id).ToList()
+        };
+        var m = Modelo("Presupuestos"); m.Presupuestos = lista; m.Q = q; m.Tipo = tipo; m.Orden = orden; m.Total = lista.Count;
+        return View(m);
+    }
 
     [HttpPost("/Presupuestos")]
     public IActionResult GestionarPresupuestos(IFormCollection f)

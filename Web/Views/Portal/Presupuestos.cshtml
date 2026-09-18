@@ -1,13 +1,30 @@
 @model PortalModel
-<div class="intro"><div class="eyebrow">LISTAS GUARDADAS</div><h1>Presupuestos</h1><p>Tus materiales, cantidades y precios, organizados por obra.</p></div>
-<section class="panel budget-start"><div><h2>Crear un nuevo presupuesto</h2><p>Elegí los productos desde el catálogo y revisalos en el carrito antes de generar la orden.</p></div><a class="button primary" href="/Catalogo">Ir al catálogo</a></section>
-<div class="cards">
+@{ var normales = Model.Presupuestos.Count(p => !p.EsPrueba); var pruebas = Model.Presupuestos.Count(p => p.EsPrueba); }
+<div class="intro"><div class="eyebrow">HISTORIAL DE OBRAS</div><h1>Presupuestos</h1><p>Buscá, reutilizá y descargá las órdenes generadas para cada obra.</p></div>
+
+<section class="panel budget-start"><div><span class="budget-start-icon" aria-hidden="true">＋</span><div><h2>Crear un nuevo presupuesto</h2><p>Elegí materiales en el catálogo, revisá las cantidades y generá la orden.</p></div></div><a class="button primary" href="/Catalogo">Explorar catálogo</a></section>
+
+<section class="budget-overview" aria-label="Resumen del historial">
+<div><span>Resultados</span><strong>@Model.Total</strong></div><div><span>Presupuestos</span><strong>@normales</strong></div><div><span>De prueba</span><strong>@pruebas</strong></div>
+</section>
+
+<form class="filters budget-filters" method="get" action="/Presupuestos">
+<label>Buscar por obra, número o responsable<input name="q" value="@Model.Q" maxlength="160" placeholder="Ej.: Local Centro o 000125"></label>
+<label>Tipo<select name="tipo"><option value="">Todos</option><option value="normal" selected="@(Model.Tipo=="normal")">Presupuestos</option><option value="prueba" selected="@(Model.Tipo=="prueba")">Pruebas</option></select></label>
+<label>Ordenar<select name="orden"><option value="recientes" selected="@(Model.Orden=="recientes")">Más recientes</option><option value="antiguos" selected="@(Model.Orden=="antiguos")">Más antiguos</option><option value="nombre" selected="@(Model.Orden=="nombre")">Nombre de obra</option></select></label>
+<button class="primary">Aplicar</button>@if(Model.Q!="" || Model.Tipo!="" || Model.Orden!="recientes"){<a href="/Presupuestos">Limpiar</a>}
+</form>
+
+@if(Model.Presupuestos.Count>0){
+<section class="budget-list" aria-label="Presupuestos guardados">
 @foreach(var p in Model.Presupuestos){
-<article class="panel"><div class="eyebrow">Nº @p.Id.ToString("D6") · @p.Fecha.AddHours(-3).ToString("dd/MM/yyyy")</div>
-<h2><a href="/Presupuesto?id=@p.Id">@p.Nombre</a></h2><small>Preparó: @p.Autor</small>
-@if(p.EsPrueba){<p><span class="tag">Prueba · precios ficticios</span></p>}
-<div class="actions"><a href="/Presupuesto?id=@p.Id">Abrir</a><form method="post" action="/Presupuestos">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><button name="accion" value="duplicar">Duplicar</button></form><a href="/Presupuesto?id=@p.Id&confirmar=1">Eliminar</a></div>
+<article class="panel budget-card">
+<header class="budget-card-head"><span class="budget-number">Nº @p.Id.ToString("D6")</span><time datetime="@p.Fecha.ToString("O")">@p.Fecha.AddHours(-3).ToString("dd/MM/yyyy · HH:mm")</time></header>
+<div class="budget-card-body"><h2><a href="/Presupuesto?id=@p.Id">@p.Nombre</a></h2><div class="budget-meta"><span><small>Preparó</small><strong>@p.Autor</strong></span><span><small>Tipo</small>@if(p.EsPrueba){<strong class="status test">Prueba</strong>}else{<strong class="status active">Presupuesto</strong>}</span></div></div>
+<footer class="budget-card-actions"><a class="button primary" href="/Presupuesto?id=@p.Id">Abrir detalle</a><a class="button" href="/DescargarPdf?id=@p.Id">Descargar PDF</a><form method="post" action="/Presupuestos">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><button name="accion" value="duplicar">Duplicar</button></form><a class="button dangertext" href="/Presupuesto?id=@p.Id&confirmar=1">Eliminar</a></footer>
 </article>
 }
-@if(Model.Presupuestos.Count==0){<p>Todavía no hay presupuestos. Creá el primero arriba.</p>}
-</div>
+</section>
+}else{
+<section class="panel budget-empty"><div aria-hidden="true">📄</div><h2>No encontramos presupuestos</h2><p>@(Model.Q!="" || Model.Tipo!="" ? "Probá con otros términos o limpiá los filtros." : "Creá el primero agregando materiales desde el catálogo.")</p>@if(Model.Q!="" || Model.Tipo!=""){<a class="button" href="/Presupuestos">Limpiar filtros</a>}else{<a class="button primary" href="/Catalogo">Ir al catálogo</a>}</section>
+}
