@@ -246,7 +246,7 @@ tbody tr:hover{background:#fafbfd}
 .product-image,.product-image-placeholder{display:block;width:64px;height:64px;border-radius:9px;object-fit:contain;background:#f1f4f7;border:1px solid var(--line)}
 .product-image-placeholder{display:grid;place-items:center;color:var(--muted);font:600 10px/1.2 'Segoe UI',Arial,sans-serif;text-align:center;padding:5px}
 .product-image-cell{min-width:94px}
-.catalog-mode-lista th:nth-child(5),.catalog-mode-lista .product-image-cell{display:none}
+.catalog-mode-lista th:nth-child(5),.catalog-mode-lista .product-image-cell,.catalog-mode-lista th:nth-child(6),.catalog-mode-lista .catalog-price{display:none}
 .catalog-mode-lista .catalog-code-extra,.catalog-mode-lista .catalog-brand-extra,.catalog-mode-lista .catalog-description-extra{display:none}
 @media(min-width:701px){
  .catalog-mode-lista .catalog-actions{display:flex;align-items:center;gap:8px;min-width:270px}

@@ -1,13 +1,15 @@
 {
-  "passed": 8,
+  "passed": 10,
   "checks": [
     "Modo Lista activo",
     "Lista oculta Local a consultar",
     "Lista oculta Sin clasificar",
     "Lista oculta Unidad",
+    "Lista oculta el precio",
     "Acciones alineadas en una fila",
     "Lista sin desbordamiento en escritorio",
     "Tarjetas conservan los detalles",
+    "Tarjetas conservan el precio",
     "Lista sin desbordamiento en celular"
   ]
 }
