@@ -36,4 +36,15 @@ IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='IX_EC_Items_Presupuesto') CR
 IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='IX_EC_Productos_Origen') CREATE UNIQUE INDEX IX_EC_Productos_Origen ON EC_Productos(ClaveOrigen) WHERE ClaveOrigen IS NOT NULL;
 IF COL_LENGTH('EC_Productos','Imagen') IS NULL ALTER TABLE EC_Productos ADD Imagen nvarchar(260) NOT NULL CONSTRAINT DF_EC_Productos_Imagen DEFAULT '';
 UPDATE EC_Productos SET PrecioEstimado=0 WHERE PrecioEstimado IS NULL;
+IF OBJECT_ID('EC_Colores') IS NULL
+CREATE TABLE EC_Colores(
+ Id int IDENTITY PRIMARY KEY, Nombre nvarchar(60) NOT NULL UNIQUE, CodigoHex varchar(7) NOT NULL,
+ Activo bit NOT NULL DEFAULT 1, Orden int NOT NULL);
+IF OBJECT_ID('EC_ProductoColores') IS NULL
+CREATE TABLE EC_ProductoColores(
+ ProductoId int NOT NULL REFERENCES EC_Productos(Id), ColorId int NOT NULL REFERENCES EC_Colores(Id),
+ CONSTRAINT PK_EC_ProductoColores PRIMARY KEY(ProductoId,ColorId));
+IF COL_LENGTH('EC_Items','ColorId') IS NULL ALTER TABLE EC_Items ADD ColorId int NULL;
+IF COL_LENGTH('EC_Items','ColorNombre') IS NULL ALTER TABLE EC_Items ADD ColorNombre nvarchar(60) NOT NULL CONSTRAINT DF_EC_Items_ColorNombre DEFAULT '';
+IF NOT EXISTS(SELECT 1 FROM sys.foreign_keys WHERE name='FK_EC_Items_Colores') ALTER TABLE EC_Items ADD CONSTRAINT FK_EC_Items_Colores FOREIGN KEY(ColorId) REFERENCES EC_Colores(Id);
 GO

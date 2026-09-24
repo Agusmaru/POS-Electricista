@@ -5,7 +5,11 @@ publicar/
 publicar*/
 **/App_Data/
 ACCESOS-LOCALES.txt
-Web/wwwroot/uploads/
+Web/wwwroot/uploads/*
+!Web/wwwroot/uploads/productos/
+Web/wwwroot/uploads/productos/*
+!Web/wwwroot/uploads/productos/.gitkeep
+!Web/wwwroot/uploads/productos/catalogador-v2-*
 datos/*.log
 datos/*.png
 datos/accesos-test.json

@@ -6,7 +6,7 @@
 @if(Context.Request.Query["confirmar"]=="1"){
 <section class="alert danger">¿Eliminar este presupuesto del historial?<form method="post" action="/Presupuestos">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><input type="hidden" name="revision" value="@p.Revision"><button name="accion" value="eliminar">Sí, eliminar</button><a href="/Presupuesto?id=@p.Id">Cancelar</a></form></section>
 }
-@if(p.EsPrueba){<div class="alert">Documento de prueba. Contiene precios ficticios para validar los cálculos; no usar como cotización real.</div>}
+@if(p.EsPrueba){<div class="alert">Documento de prueba para validar el funcionamiento del sistema.</div>}
 <section class="panel"><form method="post" action="/Presupuesto?id=@p.Id">@Html.AntiForgeryToken()<input type="hidden" name="revision" value="@p.Revision">
 <label>Obra / nombre de lista<input name="nombre" value="@p.Nombre" maxlength="160" required></label>
 <label>Observaciones generales<textarea name="observaciones" maxlength="1500" rows="2">@p.Observaciones</textarea></label><button name="accion" value="guardar">Guardar datos</button>
@@ -18,20 +18,18 @@
 @foreach(var a in Model.Productos){
 <article class="result"><div><strong>@a.Nombre</strong><small>@a.Marca.Nombre · @a.CodigoCatalogo · @a.Tipo</small><p>@a.Descripcion</p></div>
 <form method="post" action="/Presupuesto?id=@p.Id">@Html.AntiForgeryToken()<input type="hidden" name="revision" value="@p.Revision"><input type="hidden" name="producto" value="@a.Id">
-<div class="lineinputs"><label>Cantidad (@a.Unidad)<input name="cantidad" type="number" min="0.001" max="1000000" step="0.001" value="1" required></label><label>Precio ARS / @a.Unidad<input name="precio" type="number" min="0" max="1000000000" step="0.01" value="@PortalModel.Numero(a.PrecioEstimado)"></label><label>Nota (opcional)<input name="nota" maxlength="500"></label><button class="primary" name="accion" value="agregar">Agregar</button></div>
+<div class="lineinputs">@if(a.RequiereColor){<label>Color<select name="color" required><option value="">Elegí un color</option>@foreach(var color in a.Colores){<option value="@color.Id">@color.Nombre</option>}</select></label>}<label>Cantidad (@a.Unidad)<input name="cantidad" type="number" min="0.001" max="1000000" step="0.001" value="1" required></label><label>Nota (opcional)<input name="nota" maxlength="500"></label><button class="primary" name="accion" value="agregar">Agregar</button></div>
 </form></article>
 }
 @if(Model.Q==""){<p class="muted">Escribí un nombre, marca, tipo o código para buscar otro material.</p>}else if(Model.Total==0){<p>No hay coincidencias en el catálogo activo.</p>}
 </div></section>
 <section class="panel"><h2>Materiales seleccionados <span class="tag">@p.Items.Count renglones</span></h2>
 @foreach(var item in p.Items){
-<article class="result"><div><strong>@item.Nombre</strong><small>@item.Marca · @item.CodigoCatalogo · Código interno: @(string.IsNullOrEmpty(item.CodigoLocal)?"A consultar":item.CodigoLocal)</small><p>@item.Descripcion</p><strong>Subtotal: @PortalModel.Precio(item.Subtotal)</strong></div>
+<article class="result"><div><strong>@item.Nombre</strong>@if(!string.IsNullOrWhiteSpace(item.ColorNombre)){<span class="color-badge" data-color="@item.ColorNombre"><span aria-hidden="true"></span>@item.ColorNombre</span>}<small>@item.Marca · @item.CodigoCatalogo · Código interno: @(string.IsNullOrEmpty(item.CodigoLocal)?"A consultar":item.CodigoLocal)</small><p>@item.Descripcion</p></div>
 <form method="post" action="/Presupuesto?id=@p.Id">@Html.AntiForgeryToken()<input type="hidden" name="revision" value="@p.Revision"><input type="hidden" name="item" value="@item.Id">
-<div class="lineinputs"><label>Cantidad (@item.Unidad)<input name="cantidad" type="number" min="0.001" max="1000000" step="0.001" value="@PortalModel.Numero(item.Cantidad)" required></label><label>Precio ARS / @item.Unidad<input name="precio" type="number" min="0" max="1000000000" step="0.01" value="@PortalModel.Numero(item.PrecioUnitario)"></label><label>Observaciones<input name="nota" value="@item.Observaciones" maxlength="500"></label><button name="accion" value="item">Guardar</button><button class="quiet dangertext" name="accion" value="quitar" formnovalidate>Quitar</button></div>
+<div class="lineinputs"><label>Cantidad (@item.Unidad)<input name="cantidad" type="number" min="0.001" max="1000000" step="0.001" value="@PortalModel.Numero(item.Cantidad)" required></label><label>Observaciones<input name="nota" value="@item.Observaciones" maxlength="500"></label><button name="accion" value="item">Guardar</button><button class="quiet dangertext" name="accion" value="quitar" formnovalidate>Quitar</button></div>
 </form></article>
 }
 @if(p.Items.Count==0){<p>Agregá tu primer material desde el buscador.</p>}
-<div class="total"><span>@(p.Completo?"Total aproximado ARS":"Subtotal con precio ARS")</span><strong>@PortalModel.Precio(p.Total)</strong></div>
-@if(!p.Completo && p.Items.Count>0){<div class="alert">Hay productos sin precio. El subtotal no representa el costo completo de la compra.</div>}
 <p class="muted">@Dominio.Presupuesto.Aviso</p>
 </section>

@@ -45,28 +45,29 @@ namespace Negocio
             pagina=new StringBuilder();paginas.Add(pagina);
             Rect(0,0,842,7,"0.08 0.17 0.26");
             Texto(32,35,"ELECTRICIDAD | CATÁLOGO PROFESIONAL",11,true,"0.08 0.17 0.26");
-            Texto(32,62,"Orden de materiales y presupuesto aproximado",20,true);
+            Texto(32,62,"Orden de materiales",20,true);
             var title=Wrap(p.Nombre,760,11);float ty=82;foreach(var line in title){Texto(32,ty,line,11,true);ty+=14;}
-            Texto(32,ty+3,"Nº "+p.Id.ToString("D6")+"   |   "+p.Fecha.AddHours(-3).ToString("dd/MM/yyyy")+"   |   Moneda: ARS",9);
+            Texto(32,ty+3,"Nº "+p.Id.ToString("D6")+"   |   "+p.Fecha.AddHours(-3).ToString("dd/MM/yyyy"),9);
             ty+=20;
             foreach(var line in Wrap("Preparó: "+p.Autor,770,9)){Texto(32,ty,line);ty+=12;}
-            if(p.EsPrueba){Rect(32,ty-1,778,23,"1 0.94 0.79");Texto(40,ty+14,"DOCUMENTO DE PRUEBA - Precios ficticios para validar el sistema. No usar como cotización real.",9,true);ty+=32;}
+            if(p.EsPrueba){Rect(32,ty-1,778,23,"1 0.94 0.79");Texto(40,ty+14,"DOCUMENTO DE PRUEBA - No usar como orden real.",9,true);ty+=32;}
             y=ty+5;
             if(tabla)Cabecera();
         }
         private void Cabecera()
-        {Rect(32,y,778,24,"0.08 0.17 0.26");Texto(40,y+16,"PRODUCTO / DESCRIPCIÓN",9,true,"1 1 1");Texto(370,y+16,"CÓDIGOS",9,true,"1 1 1");Texto(522,y+16,"CANT. / UN.",9,true,"1 1 1");Texto(622,y+16,"P. UNIT. ARS",9,true,"1 1 1");Texto(727,y+16,"IMPORTE ARS",9,true,"1 1 1");y+=24;}
+        {Rect(32,y,778,24,"0.08 0.17 0.26");Texto(40,y+16,"PRODUCTO / DESCRIPCIÓN",9,true,"1 1 1");Texto(470,y+16,"CÓDIGOS",9,true,"1 1 1");Texto(680,y+16,"CANTIDAD / UNIDAD",9,true,"1 1 1");y+=24;}
         public byte[] Generar(Presupuesto p)
         {
             if(p==null||p.Items.Count==0)throw new ArgumentException("Agregá al menos un material antes de descargar el PDF.");
             paginas.Clear();Nueva(p);int indice=0;
             foreach(var item in p.Items)
             {
-                var material=Wrap(item.Nombre,316,9);material.AddRange(Wrap(item.Descripcion,316,8));material.AddRange(Wrap(item.Marca+" | "+item.Tipo,316,8));
-                if(!string.IsNullOrWhiteSpace(item.Observaciones))material.AddRange(Wrap("Nota: "+item.Observaciones,316,8));
-                var codes=Wrap("Cat.: "+(string.IsNullOrEmpty(item.CodigoCatalogo)?"A consultar":item.CodigoCatalogo),139,8);
-                codes.AddRange(Wrap("Interno: "+(string.IsNullOrEmpty(item.CodigoLocal)?"A consultar":item.CodigoLocal),139,8));
-                var units=Wrap(item.Cantidad.ToString("0.###",cultura)+" "+item.Unidad,83,8);
+                var material=Wrap(item.Nombre,410,9);material.AddRange(Wrap(item.Descripcion,410,8));material.AddRange(Wrap(item.Marca+" | "+item.Tipo,410,8));
+                if(!string.IsNullOrWhiteSpace(item.ColorNombre))material.AddRange(Wrap("Color: "+item.ColorNombre,410,8));
+                if(!string.IsNullOrWhiteSpace(item.Observaciones))material.AddRange(Wrap("Nota: "+item.Observaciones,410,8));
+                var codes=Wrap("Cat.: "+(string.IsNullOrEmpty(item.CodigoCatalogo)?"A consultar":item.CodigoCatalogo),190,8);
+                codes.AddRange(Wrap("Interno: "+(string.IsNullOrEmpty(item.CodigoLocal)?"A consultar":item.CodigoLocal),190,8));
+                var units=Wrap(item.Cantidad.ToString("0.###",cultura)+" "+item.Unidad,115,8);
                 int max=Math.Max(material.Count,Math.Max(codes.Count,units.Count));
                 for(int offset=0;offset<max;)
                 {
@@ -76,19 +77,19 @@ namespace Negocio
                     Rect(32,y,778,h,indice%2==0?"0.96 0.98 0.98":"1 1 1");
                     for(int k=0;k<take;k++)
                     {int i=offset+k;if(i<material.Count)Texto(40,y+15+k*12,material[i],i==0?9:8,i==0);
-                     if(i<codes.Count)Texto(370,y+15+k*12,codes[i],8);
-                     if(i<units.Count)Texto(522,y+15+k*12,units[i],8);}
-                    if(offset==0){Derecha(707,y+15,item.PrecioUnitario.HasValue?item.PrecioUnitario.Value.ToString("N2",cultura):"A consultar",8);Derecha(802,y+15,item.Subtotal.HasValue?item.Subtotal.Value.ToString("N2",cultura):"Pendiente",8,true);}
+                     if(i<codes.Count)Texto(470,y+15+k*12,codes[i],8);
+                     if(i<units.Count)Texto(680,y+15+k*12,units[i],8);}
                     y+=h;offset+=take;if(offset<max)Nueva(p);
                 }
                 indice++;
             }
             var notes=Wrap(p.Observaciones,758,9);
-            if(y+72>505)Nueva(p,false);
-            y+=14;Rect(480,y,330,42,"1 0.95 0.75");Texto(492,y+17,p.Completo?"TOTAL APROXIMADO ARS":"SUBTOTAL CON PRECIO ARS",10,true);
-            Derecha(798,y+34,p.Total.ToString("N2",cultura),13,true);y+=62;
-            if(!p.Completo){foreach(var line in Wrap("Hay materiales sin precio. El subtotal no representa el costo completo de la compra.",760,9)){if(y>500)Nueva(p,false);Texto(32,y,line,9,true);y+=13;}y+=8;}
-            if(!string.IsNullOrWhiteSpace(p.Observaciones))foreach(var line in notes){if(y>500)Nueva(p,false);Texto(32,y,line,9);y+=13;}
+            if(!string.IsNullOrWhiteSpace(p.Observaciones))
+            {
+                if(y+42>505)Nueva(p,false);
+                y+=16;Texto(32,y,"OBSERVACIONES",9,true);y+=15;
+                foreach(var line in notes){if(y>500)Nueva(p,false);Texto(32,y,line,9);y+=13;}
+            }
             for(int i=0;i<paginas.Count;i++)
             {pagina=paginas[i];Rect(32,533,778,1,"0.8 0.85 0.85");float fy=548;foreach(var line in Wrap(Presupuesto.Aviso,714,8)){Texto(32,fy,line,8);fy+=11;}Texto(761,568,(i+1)+" / "+paginas.Count,8);}
             return Serializar();

@@ -24,14 +24,14 @@ namespace Negocio
                 using(var cmd=CatalogoDatos.Comando(c,@"SELECT p.*,u.Nombre Autor FROM EC_Presupuestos p JOIN EC_Usuarios u ON u.Id=p.UsuarioId WHERE p.Id=@id AND p.Activo=1 AND (p.UsuarioId=@u OR @admin=1)","@id",id,"@u",usuario.Id,"@admin",usuario.Admin))
                 using(var r=cmd.ExecuteReader()){if(!r.Read())return null;p=Leer(r);}
                 using(var cmd=CatalogoDatos.Comando(c,"SELECT * FROM EC_Items WHERE PresupuestoId=@id ORDER BY Id","@id",id))
-                using(var r=cmd.ExecuteReader())while(r.Read())p.Items.Add(new ItemPresupuesto{Id=(int)r["Id"],ProductoId=(int)r["ProductoId"],Nombre=(string)r["Nombre"],Descripcion=(string)r["Descripcion"],Marca=(string)r["Marca"],CodigoCatalogo=(string)r["CodigoCatalogo"],CodigoLocal=(string)r["CodigoLocal"],Tipo=(string)r["Tipo"],Unidad=(string)r["Unidad"],Cantidad=(decimal)r["Cantidad"],PrecioUnitario=CatalogoDatos.Precio(r,"PrecioUnitario"),Observaciones=(string)r["Observaciones"]});
+                using(var r=cmd.ExecuteReader())while(r.Read())p.Items.Add(new ItemPresupuesto{Id=(int)r["Id"],ProductoId=(int)r["ProductoId"],Nombre=(string)r["Nombre"],Descripcion=(string)r["Descripcion"],Marca=(string)r["Marca"],CodigoCatalogo=(string)r["CodigoCatalogo"],CodigoLocal=(string)r["CodigoLocal"],Tipo=(string)r["Tipo"],Unidad=(string)r["Unidad"],Cantidad=(decimal)r["Cantidad"],ColorId=r["ColorId"]==DBNull.Value?null:Convert.ToInt32(r["ColorId"]),ColorNombre=CatalogoDatos.Texto(r,"ColorNombre"),PrecioUnitario=CatalogoDatos.Precio(r,"PrecioUnitario"),Observaciones=(string)r["Observaciones"]});
             }
             return p;
         }
-        public static ItemPresupuesto DesdeProducto(ArticuloCatalogo a,decimal cantidad,decimal? precio,string observaciones)
+        public static ItemPresupuesto DesdeProducto(ArticuloCatalogo a,decimal cantidad,decimal? precio,string observaciones,ColorCatalogo color=null)
         {
             if(a==null||!a.Activo)throw new ArgumentException("El producto no está disponible en el catálogo.");
-            return new ItemPresupuesto{ProductoId=a.Id,Nombre=a.Nombre,Descripcion=a.Descripcion,Marca=a.Marca.Nombre,CodigoCatalogo=a.CodigoCatalogo,CodigoLocal=a.CodigoLocal,Tipo=a.Tipo,Unidad=a.Unidad,Imagen=a.Imagen??"",Cantidad=cantidad,PrecioUnitario=precio,Observaciones=observaciones??""};
+            return new ItemPresupuesto{ProductoId=a.Id,Nombre=a.Nombre,Descripcion=a.Descripcion,Marca=a.Marca.Nombre,CodigoCatalogo=a.CodigoCatalogo,CodigoLocal=a.CodigoLocal,Tipo=a.Tipo,Unidad=a.Unidad,Imagen=a.Imagen??"",Cantidad=cantidad,ColorId=color?.Id,ColorNombre=color?.Nombre??"",PrecioUnitario=precio,Observaciones=observaciones??""};
         }
         public int Guardar(Presupuesto p,UsuarioCatalogo usuario)
         {
@@ -39,6 +39,7 @@ namespace Negocio
             if(p.Items.Count>300)throw new ArgumentException("Se permiten hasta 300 renglones por presupuesto.");
             foreach(var x in p.Items)
             { if(x.Cantidad<=0||x.Cantidad>1000000||decimal.Round(x.Cantidad,3)!=x.Cantidad)throw new ArgumentException("La cantidad debe ser mayor a cero, hasta 1.000.000 y con hasta 3 decimales.");
+              if((x.ColorNombre??"").Length>60)throw new ArgumentException("El color seleccionado no es válido.");
               if(x.PrecioUnitario<0||x.PrecioUnitario>1000000000|| (x.PrecioUnitario.HasValue && decimal.Round(x.PrecioUnitario.Value,2)!=x.PrecioUnitario.Value))throw new ArgumentException("Precio inválido: usá un valor positivo o cero, con hasta dos decimales."); }
             using(var c=CatalogoDatos.Abrir()) using(var tx=c.BeginTransaction())
             {
@@ -49,8 +50,8 @@ namespace Negocio
                     {cmd.Transaction=tx;var id=cmd.ExecuteScalar();if(id==null)throw new ArgumentException("El presupuesto cambió o no tenés acceso. Recargá la página antes de editar.");p.Id=Convert.ToInt32(id);}
                     using(var cmd=CatalogoDatos.Comando(c,"DELETE EC_Items WHERE PresupuestoId=@id","@id",p.Id)){cmd.Transaction=tx;cmd.ExecuteNonQuery();}
                     foreach(var x in p.Items)
-                    using(var cmd=CatalogoDatos.Comando(c,@"INSERT EC_Items(PresupuestoId,ProductoId,Nombre,Descripcion,Marca,CodigoCatalogo,CodigoLocal,Tipo,Unidad,Cantidad,PrecioUnitario,Observaciones) VALUES(@id,@p,@n,@d,@m,@c,@l,@t,@u,@q,@v,@o)",
-                        "@id",p.Id,"@p",x.ProductoId,"@n",x.Nombre,"@d",x.Descripcion,"@m",x.Marca,"@c",x.CodigoCatalogo,"@l",x.CodigoLocal,"@t",x.Tipo,"@u",x.Unidad,"@q",x.Cantidad,"@v",x.PrecioUnitario,"@o",x.Observaciones??""))
+                    using(var cmd=CatalogoDatos.Comando(c,@"INSERT EC_Items(PresupuestoId,ProductoId,Nombre,Descripcion,Marca,CodigoCatalogo,CodigoLocal,Tipo,Unidad,Cantidad,ColorId,ColorNombre,PrecioUnitario,Observaciones) VALUES(@id,@p,@n,@d,@m,@c,@l,@t,@u,@q,@colorId,@colorNombre,@v,@o)",
+                        "@id",p.Id,"@p",x.ProductoId,"@n",x.Nombre,"@d",x.Descripcion,"@m",x.Marca,"@c",x.CodigoCatalogo,"@l",x.CodigoLocal,"@t",x.Tipo,"@u",x.Unidad,"@q",x.Cantidad,"@colorId",x.ColorId,"@colorNombre",x.ColorNombre??"","@v",x.PrecioUnitario,"@o",x.Observaciones??""))
                     {cmd.Transaction=tx;cmd.ExecuteNonQuery();}
                     tx.Commit();return p.Id;
                 }

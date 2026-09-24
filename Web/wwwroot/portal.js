@@ -1,4 +1,40 @@
 (() => {
+    const toggles = document.querySelectorAll('[data-theme-toggle]');
+    const form = document.getElementById('theme-form');
+    if (!toggles.length || !form || !window.fetch || !window.FormData) return;
+    const root = document.documentElement;
+    const applyTheme = theme => {
+        const dark = theme === 'dark';
+        root.dataset.theme = dark ? 'dark' : 'light';
+        toggles.forEach(toggle => {
+            toggle.setAttribute('aria-checked', String(dark));
+            toggle.setAttribute('aria-label', dark ? 'Activar modo claro' : 'Activar modo oscuro');
+            toggle.value = dark ? 'light' : 'dark';
+            const icon = toggle.querySelector('.theme-icon');
+            if (icon) icon.textContent = dark ? '☀' : '☾';
+        });
+    };
+    toggles.forEach(toggle => toggle.addEventListener('click', async event => {
+        event.preventDefault();
+        const theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+        toggles.forEach(item => item.disabled = true);
+        try {
+            const data = new FormData(form);
+            data.set('tema', theme);
+            const response = await fetch(form.action, { method: 'POST', body: data, headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+            const result = await response.json();
+            if (!response.ok || !result.ok) throw new Error(result.error || 'No se pudo cambiar el tema.');
+            applyTheme(result.tema);
+        } catch (error) {
+            window.alert(error.message || 'No se pudo cambiar el tema.');
+        } finally {
+            toggles.forEach(item => item.disabled = false);
+        }
+    }));
+    applyTheme(root.dataset.theme);
+})();
+
+(() => {
     const toggle = document.querySelector('.menu-toggle');
     const navigation = document.getElementById('app-navigation');
     if (!toggle || !navigation) return;
@@ -95,6 +131,8 @@
                 badge.classList.toggle('is-empty', data.cartCount === 0);
             });
             form.querySelector('[name="cantidad"]').value = '1';
+            const color = form.querySelector('[name="color"]');
+            if (color) color.value = '';
             button.textContent = 'Agregado ✓';
             showFeedback(data.message);
             window.setTimeout(() => { button.textContent = originalText; }, 1400);

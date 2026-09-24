@@ -1,25 +1,34 @@
 @model PortalModel
-@{ var route = Context.Request.Path.Value ?? ""; }
+@{ var route = Context.Request.Path.Value ?? ""; var temaOscuro = Model.Tema == "dark"; var temaSiguiente = temaOscuro ? "light" : "dark"; var volverTema = $"{Context.Request.PathBase}{Context.Request.Path}{Context.Request.QueryString}"; }
 <!doctype html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>@Model.Titulo | Electricidad</title><link rel="icon" type="image/svg+xml" href="~/electricidad.svg" asp-append-version="true"><link rel="stylesheet" href="~/portal.css" asp-append-version="true"><link rel="stylesheet" href="~/responsive.css" asp-append-version="true"><script src="~/portal.js" asp-append-version="true" defer></script></head>
+<html lang="es" data-theme="@Model.Tema">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>@Model.Titulo | Furnarius Energy</title><link rel="icon" type="image/svg+xml" href="~/electricidad.svg" asp-append-version="true"><link rel="stylesheet" href="~/portal.css" asp-append-version="true"><link rel="stylesheet" href="~/responsive.css" asp-append-version="true"><script src="~/portal.js" asp-append-version="true" defer></script></head>
 <body class="@(Model.Usuario != null ? "authenticated" : "guest")">
 <a class="skip-link" href="#contenido">Ir al contenido</a>
+<form id="theme-form" method="post" action="/Tema" hidden>@Html.AntiForgeryToken()<input type="hidden" name="volver" value="@volverTema"></form>
 <header class="app-header">
-    <a class="brand" href="/Catalogo"><span class="bolt" aria-hidden="true"><img src="~/electricidad.svg" alt="" width="32" height="32"></span><span>ELECTRICIDAD<small>CATÁLOGO PROFESIONAL</small></span></a>
+    <a class="brand" href="/Catalogo" aria-label="Furnarius Energy, ir al catálogo"><img class="brand-logo" src="~/img/furnarius-energy-logo.jpg" alt="Furnarius Energy - Energía renovable" asp-append-version="true"></a>
     @if (Model.Usuario != null)
     {
-        <button class="menu-toggle" type="button" aria-controls="app-navigation" aria-expanded="false"><span aria-hidden="true">☰</span> Menú</button>
+        <div class="mobile-header-actions">
+            <button class="theme-toggle theme-toggle-compact" type="submit" form="theme-form" name="tema" value="@temaSiguiente" role="switch" aria-checked="@temaOscuro.ToString().ToLowerInvariant()" data-theme-toggle><span class="theme-icon" aria-hidden="true">@(temaOscuro ? "☀" : "☾")</span><span class="sr-only">Modo oscuro</span></button>
+            <button class="menu-toggle" type="button" aria-controls="app-navigation" aria-expanded="false"><span aria-hidden="true">☰</span> Menú</button>
+        </div>
         <div id="app-navigation" class="navigation-region">
         <nav aria-label="Navegación principal">
         <span class="nav-caption">ESPACIO DE TRABAJO</span>
         <a href="/Catalogo" aria-current="@(route == "/Catalogo" ? "page" : null)">Catálogo</a><a class="cart-nav" href="/Carrito" aria-current="@(route == "/Carrito" ? "page" : null)">Carrito <span class="cart-badge @(Model.CarritoCantidad == 0 ? "is-empty" : "")" data-cart-count aria-label="@Model.CarritoCantidad productos en el carrito">@Model.CarritoCantidad</span></a><a href="/Presupuestos" aria-current="@(route.StartsWith("/Presupuesto") ? "page" : null)">Presupuestos</a>
         @if (Model.Usuario.Admin) { <a href="/EditarProducto" aria-current="@(route == "/EditarProducto" ? "page" : null)">Nuevo producto</a><a href="/UsuariosCatalogo" aria-current="@(route == "/UsuariosCatalogo" ? "page" : null)">Usuarios</a> }
         </nav>
+        <div class="theme-control"><button class="theme-toggle" type="submit" form="theme-form" name="tema" value="@temaSiguiente" role="switch" aria-checked="@temaOscuro.ToString().ToLowerInvariant()" data-theme-toggle><span class="theme-icon" aria-hidden="true">@(temaOscuro ? "☀" : "☾")</span><span>Modo oscuro</span><span class="theme-switch" aria-hidden="true"><span></span></span></button></div>
         <div class="sidebar-note"><strong>Materiales para<br>cada instalación</strong><p>Armá tu lista.<br>Prepará tu próxima obra.</p></div>
         <div class="identity"><a href="/Cuenta">@Model.Usuario.Nombre</a><small>@(Model.Usuario.Admin ? "Administrador" : "Asesor")</small></div>
         <form class="logout" method="post" action="/Cuenta">@Html.AntiForgeryToken()<button class="quiet" name="accion" value="salir">Cerrar sesión</button></form>
         </div>
+    }
+    else
+    {
+        <div class="theme-control theme-control-guest"><button class="theme-toggle" type="submit" form="theme-form" name="tema" value="@temaSiguiente" role="switch" aria-checked="@temaOscuro.ToString().ToLowerInvariant()" data-theme-toggle><span class="theme-icon" aria-hidden="true">@(temaOscuro ? "☀" : "☾")</span><span>Modo oscuro</span><span class="theme-switch" aria-hidden="true"><span></span></span></button></div>
     }
 </header>
 <main id="contenido" tabindex="-1">
@@ -27,5 +36,5 @@
 @if (TempData["Mensaje"] is string message) { <div class="alert" role="status">@message</div> }
 @RenderBody()
 </main>
-<footer>Electricidad · Catálogo y presupuestos de materiales eléctricos</footer>
+<footer>Furnarius Energy · Catálogo y órdenes de materiales</footer>
 </body></html>

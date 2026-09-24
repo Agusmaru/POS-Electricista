@@ -35,6 +35,7 @@ public class PortalModel
     public int Paginas { get; set; } = 1;
     public int Total { get; set; }
     public string Vista { get; set; } = "lista";
+    public string Tema { get; set; } = "dark";
     public string Error { get; set; }
     public static string Precio(decimal? p) => p.HasValue ? "$ " + p.Value.ToString("N2", CultureInfo.GetCultureInfo("es-AR")) : "A consultar";
     public static string Numero(decimal? n) => n?.ToString(CultureInfo.InvariantCulture) ?? "";
@@ -49,7 +50,8 @@ public class PortalController : Controller
     private UsuarioCatalogo usuario;
     private readonly IWebHostEnvironment entorno;
     public PortalController(IWebHostEnvironment entorno) => this.entorno = entorno;
-    private PortalModel Modelo(string titulo) => new() { Titulo = titulo, Usuario = usuario, CarritoCantidad = usuario == null ? 0 : ObtenerCarrito(false)?.Items.Count ?? 0 };
+    private const string ClaveTema = "tema";
+    private PortalModel Modelo(string titulo) => new() { Titulo = titulo, Usuario = usuario, Tema = ObtenerTema(), CarritoCantidad = usuario == null ? 0 : ObtenerCarrito(false)?.Items.Count ?? 0 };
     private bool SolicitaJson() => Request.Headers.Accept.ToString().Contains("application/json", StringComparison.OrdinalIgnoreCase)
         || Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
@@ -100,6 +102,17 @@ public class PortalController : Controller
         return Redirect("/Catalogo");
     }
 
+    [AllowAnonymous, HttpPost("/Tema")]
+    public IActionResult CambiarTema(IFormCollection form)
+    {
+        var tema = form["tema"].ToString().Trim().ToLowerInvariant();
+        if (tema is not ("dark" or "light")) return BadRequest(new { ok = false, error = "Tema inválido." });
+        HttpContext.Session.SetString(ClaveTema, tema);
+        if (SolicitaJson()) return Json(new { ok = true, tema });
+        var volver = form["volver"].ToString();
+        return Url.IsLocalUrl(volver) ? LocalRedirect(volver) : Redirect(usuario == null ? "/Login" : "/Catalogo");
+    }
+
     [HttpGet("/Catalogo")]
     public IActionResult Catalogo(string q = "", string marca = "", string tipo = "", bool inactivos = false, int pagina = 1, string vista = "")
     {
@@ -127,13 +140,14 @@ public class PortalController : Controller
         if (!ImagenDisponible(producto.Imagen)) producto.Imagen = "";
         var cantidad = Numero(f,"cantidad",true);
         if (cantidad != decimal.Truncate(cantidad)) throw new ArgumentException("La cantidad debe ser un número entero.");
+        var color = catalogo.ResolverColor(producto, EnteroOpcional(f,"color"));
         var carrito = ObtenerCarrito();
-        var existente = carrito.Items.FirstOrDefault(i => i.ProductoId == producto.Id);
-        if (existente == null) carrito.Items.Add(PresupuestoNegocio.DesdeProducto(producto,cantidad,producto.PrecioEstimado ?? 0m,""));
+        var existente = carrito.Items.FirstOrDefault(i => i.ProductoId == producto.Id && i.ColorId == color?.Id);
+        if (existente == null) carrito.Items.Add(PresupuestoNegocio.DesdeProducto(producto,cantidad,null,"",color));
         else existente.Cantidad = Math.Min(1000000m, existente.Cantidad + cantidad);
         GuardarCarrito(carrito);
-        string mensaje = producto.Nombre + " se agregó al presupuesto.";
-        if (SolicitaJson()) return Json(new { ok = true, message = mensaje, cartCount = carrito.Items.Count, productId = producto.Id });
+        string mensaje = producto.Nombre + (color == null ? "" : " · " + color.Nombre) + " se agregó al presupuesto.";
+        if (SolicitaJson()) return Json(new { ok = true, message = mensaje, cartCount = carrito.Items.Count, productId = producto.Id, colorId = color?.Id });
         TempData["Mensaje"] = mensaje;
         string volver = Texto(f,"volver",500);
         return Redirect(volver.StartsWith("/Catalogo",StringComparison.Ordinal) ? volver : "/Catalogo");
@@ -160,17 +174,19 @@ public class PortalController : Controller
                 if (carrito.Nombre == "") throw new ArgumentException("Ingresá un nombre para la obra.");
                 break;
             case "cantidad":
-                var item = carrito.Items.FirstOrDefault(i => i.ProductoId == Entero(f,"producto")) ?? throw new ArgumentException("El producto ya no está en el carrito.");
+                var item = carrito.Items.FirstOrDefault(i => i.ProductoId == Entero(f,"producto") && i.ColorId == ColorOpcional(f)) ?? throw new ArgumentException("El producto ya no está en el carrito.");
                 item.Cantidad = Numero(f,"cantidad",true);
                 break;
             case "quitar":
-                carrito.Items.RemoveAll(i => i.ProductoId == Entero(f,"producto"));
+                var productoId = Entero(f,"producto"); var colorId = ColorOpcional(f);
+                carrito.Items.RemoveAll(i => i.ProductoId == productoId && i.ColorId == colorId);
                 break;
             case "vaciar":
                 carrito.Items.Clear();
                 break;
             case "confirmar":
                 if (carrito.Items.Count == 0) throw new ArgumentException("Agregá al menos un producto antes de confirmar.");
+                foreach (var renglon in carrito.Items) renglon.PrecioUnitario = null;
                 carrito.Local = "";
                 carrito.Observaciones ??= "";
                 int id = presupuestos.Guardar(carrito,usuario);
@@ -261,13 +277,21 @@ public class PortalController : Controller
         switch (Texto(f,"accion",20))
         {
             case "guardar": p.Nombre = Texto(f,"nombre",160); p.Local = Texto(f,"local",200); p.Observaciones = Texto(f,"observaciones",1500); break;
-            case "agregar": p.Items.Add(PresupuestoNegocio.DesdeProducto(catalogo.Obtener(Entero(f,"producto")), Numero(f,"cantidad",true), Precio(f,"precio"), Texto(f,"nota",500))); break;
+            case "agregar":
+                var producto = catalogo.Obtener(Entero(f,"producto"));
+                var color = catalogo.ResolverColor(producto, EnteroOpcional(f,"color"));
+                var cantidad = Numero(f,"cantidad",true);
+                var existente = p.Items.FirstOrDefault(i => i.ProductoId == producto.Id && i.ColorId == color?.Id);
+                if (existente == null) p.Items.Add(PresupuestoNegocio.DesdeProducto(producto, cantidad, null, Texto(f,"nota",500), color));
+                else existente.Cantidad = Math.Min(1000000m, existente.Cantidad + cantidad);
+                break;
             case "item": case "quitar":
                 var item = p.Items.FirstOrDefault(i => i.Id == Entero(f,"item")); if (item == null) throw new ArgumentException("El renglón ya no existe.");
                 if (f["accion"] == "quitar") p.Items.Remove(item);
-                else { item.Cantidad = Numero(f,"cantidad",true); item.PrecioUnitario = Precio(f,"precio"); item.Observaciones = Texto(f,"nota",500); } break;
+                else { item.Cantidad = Numero(f,"cantidad",true); item.PrecioUnitario = null; item.Observaciones = Texto(f,"nota",500); } break;
             default: throw new ArgumentException("Acción inválida.");
         }
+        foreach (var renglon in p.Items) renglon.PrecioUnitario = null;
         presupuestos.Guardar(p, usuario); return Redirect("/Presupuesto?id=" + p.Id);
     }
 
@@ -329,6 +353,7 @@ public class PortalController : Controller
     { var s = f[key].ToString(); if (trim) s = s.Trim(); if (s.Length > max) throw new ArgumentException("El campo " + key + " supera " + max + " caracteres."); return s; }
     private static int Entero(IFormCollection f,string key) => int.TryParse(f[key],out int n) && n >= 0 ? n : throw new ArgumentException("Valor inválido: " + key);
     private static int EnteroOpcional(IFormCollection f,string key) => string.IsNullOrWhiteSpace(f[key]) ? 0 : Entero(f,key);
+    private static int? ColorOpcional(IFormCollection f) { var id=EnteroOpcional(f,"color"); return id==0 ? null : id; }
     private static decimal Numero(IFormCollection f,string key,bool cantidad = false)
     {
         var s = Texto(f,key,40).Replace(',','.');
@@ -338,6 +363,13 @@ public class PortalController : Controller
     }
     private static decimal? Precio(IFormCollection f,string key) => string.IsNullOrWhiteSpace(f[key]) ? null : Numero(f,key);
     private string ClaveCarrito => "carrito-" + usuario.Id;
+    private string ObtenerTema()
+    {
+        var tema = HttpContext.Session.GetString(ClaveTema);
+        if (tema is "dark" or "light") return tema;
+        HttpContext.Session.SetString(ClaveTema, "dark");
+        return "dark";
+    }
     private Presupuesto ObtenerCarrito(bool crear = true)
     {
         var json = HttpContext.Session.GetString(ClaveCarrito);

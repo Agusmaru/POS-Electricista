@@ -16,43 +16,47 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<< /Length 2606 >>
+<< /Length 2895 >>
 stream
 0.08 0.17 0.26 rg 0 588 842 7 re f
 BT /F2 11 Tf 0.08 0.17 0.26 rg 1 0 0 1 32 560 Tm (ELECTRICIDAD | CATÁLOGO PROFESIONAL) Tj ET
-BT /F2 20 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 533 Tm (Orden de materiales y presupuesto aproximado) Tj ET
-BT /F2 11 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 513 Tm (Obra QA etapa 5) Tj ET
-BT /F1 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 496 Tm (Nº 000012   |   17/09/2026   |   Moneda: ARS) Tj ET
-BT /F1 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 479 Tm (Preparó: Administrador) Tj ET
-0.08 0.17 0.26 rg 32 438 778 24 re f
-BT /F2 9 Tf 1 1 1 rg 1 0 0 1 40 446 Tm (PRODUCTO / DESCRIPCIÓN) Tj ET
-BT /F2 9 Tf 1 1 1 rg 1 0 0 1 370 446 Tm (CÓDIGOS) Tj ET
-BT /F2 9 Tf 1 1 1 rg 1 0 0 1 522 446 Tm (CANT. / UN.) Tj ET
-BT /F2 9 Tf 1 1 1 rg 1 0 0 1 622 446 Tm (P. UNIT. ARS) Tj ET
-BT /F2 9 Tf 1 1 1 rg 1 0 0 1 727 446 Tm (IMPORTE ARS) Tj ET
-0.96 0.98 0.98 rg 32 388 778 50 re f
-BT /F2 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 423 Tm (abrazadera completa) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 370 423 Tm (Cat.: BC 010 L) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 522 423 Tm (1 unidad) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 411 Tm (Abrazadera completa para caño 5/8" instalación interior) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 370 411 Tm (Interno: A consultar) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 399 Tm (DAISA | Sin clasificar) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 691.32 423 Tm (0,00) Tj ET
-BT /F2 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 786.32 423 Tm (0,00) Tj ET
-1 1 1 rg 32 338 778 50 re f
-BT /F2 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 373 Tm (abrazadera completa) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 370 373 Tm (Cat.: BC 034 L) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 522 373 Tm (1 unidad) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 361 Tm (Abrazadera completa para caño 3/4" instalación interior) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 370 361 Tm (Interno: A consultar) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 349 Tm (DAISA | Sin clasificar) Tj ET
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 691.32 373 Tm (0,00) Tj ET
-BT /F2 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 786.32 373 Tm (0,00) Tj ET
-1 0.95 0.75 rg 480 282 330 42 re f
-BT /F2 10 Tf 0.12 0.18 0.24 rg 1 0 0 1 492 307 Tm (TOTAL APROXIMADO ARS) Tj ET
-BT /F2 13 Tf 0.12 0.18 0.24 rg 1 0 0 1 772.52 290 Tm (0,00) Tj ET
+BT /F2 20 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 533 Tm (Orden de materiales) Tj ET
+BT /F2 11 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 513 Tm (Lista de compra de test) Tj ET
+BT /F1 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 496 Tm (Nº 000001   |   24/09/2026) Tj ET
+BT /F1 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 479 Tm (Preparó: Asesor de prueba) Tj ET
+1 0.94 0.79 rg 32 445 778 23 re f
+BT /F2 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 453 Tm (DOCUMENTO DE PRUEBA - No usar como orden real.) Tj ET
+0.08 0.17 0.26 rg 32 406 778 24 re f
+BT /F2 9 Tf 1 1 1 rg 1 0 0 1 40 414 Tm (PRODUCTO / DESCRIPCIÓN) Tj ET
+BT /F2 9 Tf 1 1 1 rg 1 0 0 1 470 414 Tm (CÓDIGOS) Tj ET
+BT /F2 9 Tf 1 1 1 rg 1 0 0 1 680 414 Tm (CANTIDAD / UNIDAD) Tj ET
+0.96 0.98 0.98 rg 32 344 778 62 re f
+BT /F2 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 391 Tm (Cable unipolar) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 470 391 Tm (Cat.: UNIP-250) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 680 391 Tm (15 m) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 379 Tm (Cable unipolar 2,50 mm²) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 470 379 Tm (Interno: A consultar) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 367 Tm (Argenplas | Sin clasificar) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 355 Tm (Color: Marrón) Tj ET
+1 1 1 rg 32 282 778 62 re f
+BT /F2 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 329 Tm (Cable unipolar) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 470 329 Tm (Cat.: UNIP-250) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 680 329 Tm (20 m) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 317 Tm (Cable unipolar 2,50 mm²) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 470 317 Tm (Interno: A consultar) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 305 Tm (Argenplas | Sin clasificar) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 293 Tm (Color: Azul) Tj ET
+0.96 0.98 0.98 rg 32 232 778 50 re f
+BT /F2 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 267 Tm (Caja rectangular para embutir) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 470 267 Tm (Cat.: CAJA-RECT) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 680 267 Tm (8 unidad) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 255 Tm (Caja plástica para módulos y tomacorrientes) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 470 255 Tm (Interno: A consultar) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 40 243 Tm (Genérica | Cajas) Tj ET
+BT /F2 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 216 Tm (OBSERVACIONES) Tj ET
+BT /F1 9 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 201 Tm (Confirmar cantidades, colores y disponibilidad antes de realizar la compra.) Tj ET
 0.8 0.85 0.85 rg 32 61 778 1 re f
-BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 47 Tm (Presupuesto aproximado. Los precios y el total son orientativos y deben consultarse y confirmarse antes de comprar. No constituye una oferta ni una factura.) Tj ET
+BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 32 47 Tm (Lista de materiales orientativa. Verificá cantidades, especificaciones y disponibilidad antes de realizar la compra.) Tj ET
 BT /F1 8 Tf 0.12 0.18 0.24 rg 1 0 0 1 761 27 Tm (1 / 1) Tj ET
 endstream
 endobj
@@ -68,5 +72,5 @@ xref
 trailer
 << /Size 7 /Root 1 0 R >>
 startxref
-3113
+3402
 %%EOF

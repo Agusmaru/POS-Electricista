@@ -31,6 +31,7 @@ builder.Services.AddDataProtection().SetApplicationName("FluxElectricistasCore10
 CatalogoDatos.CadenaConexion = Environment.GetEnvironmentVariable("ELECTRICISTAS_CORE10_CONNECTION_STRING")
     ?? builder.Configuration.GetConnectionString("Electricistas");
 CatalogoNegocio.PrepararEtapa2();
+CatalogoNegocio.PrepararColores();
 EncodingSetup();
 var app = builder.Build();
 app.UseExceptionHandler("/Error");

@@ -29,3 +29,9 @@ Sin un volumen persistente, las sesiones podrían invalidarse y las imágenes ca
 - Ejecutar una única instancia mientras las sesiones y las claves estén almacenadas localmente.
 - Realizar copias de seguridad periódicas de SQL Server y del volumen de imágenes.
 - Cambiar las contraseñas iniciales antes de habilitar el acceso externo.
+
+### Imágenes de productos en MonsterASP.NET
+
+Las fotografías se guardan en `wwwroot/uploads/productos` y se sirven desde `/uploads/productos/{archivo}`. La base conserva solamente el nombre del archivo en `EC_Productos.Imagen`.
+
+Esta carpeta contiene datos generados por los usuarios. Antes de usar **GitHub Pull**, **Reset** o cualquier publicación configurada para eliminar archivos adicionales del servidor, descargar un respaldo mediante SFTP. Después del despliegue, comprobar que una imagen existente siga respondiendo por HTTPS.
