@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Negocio;
+using Flux.Web.Services;
 
 namespace Flux.Web.Controllers;
 
@@ -36,6 +37,7 @@ public class PortalModel
     public int Total { get; set; }
     public string Vista { get; set; } = "lista";
     public string Tema { get; set; } = "dark";
+    public string CatalogoVersion { get; set; } = "";
     public string Error { get; set; }
     public static string Precio(decimal? p) => p.HasValue ? "$ " + p.Value.ToString("N2", CultureInfo.GetCultureInfo("es-AR")) : "A consultar";
     public static string Numero(decimal? n) => n?.ToString(CultureInfo.InvariantCulture) ?? "";
@@ -49,7 +51,12 @@ public class PortalController : Controller
     private readonly SeguridadCatalogo seguridad = new();
     private UsuarioCatalogo usuario;
     private readonly IWebHostEnvironment entorno;
-    public PortalController(IWebHostEnvironment entorno) => this.entorno = entorno;
+    private readonly CatalogoCache catalogoCache;
+    public PortalController(IWebHostEnvironment entorno, CatalogoCache catalogoCache)
+    {
+        this.entorno = entorno;
+        this.catalogoCache = catalogoCache;
+    }
     private const string ClaveTema = "tema";
     private PortalModel Modelo(string titulo) => new() { Titulo = titulo, Usuario = usuario, Tema = ObtenerTema(), CarritoCantidad = usuario == null ? 0 : ObtenerCarrito(false)?.Items.Count ?? 0 };
     private bool SolicitaJson() => Request.Headers.Accept.ToString().Contains("application/json", StringComparison.OrdinalIgnoreCase)
@@ -121,15 +128,46 @@ public class PortalController : Controller
         vista = vista is "lista" or "tarjetas" ? vista : Request.Cookies["catalogo-vista"] ?? "lista";
         if (vista is not ("lista" or "tarjetas")) vista = "lista";
         Response.Cookies.Append("catalogo-vista", vista, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, IsEssential = true, MaxAge = TimeSpan.FromDays(365) });
-        var todos = catalogo.Buscar(inactivos: usuario.Admin && inactivos);
-        var filtrados = q == "" && marca == "" && tipo == "" ? todos : catalogo.Buscar(q, marca, tipo, usuario.Admin && inactivos);
+        var snapshot = catalogoCache.Obtener(usuario.Admin);
+        var todos = snapshot.Productos.Where(p => usuario.Admin && inactivos || p.Activo).ToList();
+        var compare = CultureInfo.GetCultureInfo("es-AR").CompareInfo;
+        var filtrados = todos.Where(p =>
+            (q == "" || compare.IndexOf($"{p.Nombre} {p.Descripcion} {p.Marca.Nombre} {p.Categoria.Nombre} {p.CodigoCatalogo} {p.CodigoLocal} {p.Tipo}", q, CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) >= 0)
+            && (marca == "" || string.Equals(p.Marca.Nombre, marca, StringComparison.CurrentCultureIgnoreCase))
+            && (tipo == "" || string.Equals(p.Tipo, tipo, StringComparison.CurrentCultureIgnoreCase))).ToList();
         var m = Modelo("Materiales para tu obra");
         m.Total = filtrados.Count; m.Paginas = Math.Max(1, (int)Math.Ceiling(m.Total / 30m)); m.Pagina = Math.Clamp(pagina, 1, m.Paginas);
         m.Productos = filtrados.Skip((m.Pagina - 1) * 30).Take(30).ToList();
         foreach (var producto in m.Productos) if (!ImagenDisponible(producto.Imagen)) producto.Imagen = "";
         m.Marcas = todos.Select(p => p.Marca.Nombre).Distinct().Order().ToList(); m.Tipos = todos.Select(p => p.Tipo).Distinct().Order().ToList();
-        m.Q = q; m.Marca = marca; m.Tipo = tipo; m.Inactivos = usuario.Admin && inactivos; m.Vista = vista;
+        m.Q = q; m.Marca = marca; m.Tipo = tipo; m.Inactivos = usuario.Admin && inactivos; m.Vista = vista; m.CatalogoVersion = snapshot.Version;
         return View(m);
+    }
+
+    [HttpGet("/Catalogo/Datos")]
+    public IActionResult DatosCatalogo()
+    {
+        var snapshot = catalogoCache.Obtener(usuario.Admin);
+        return Json(new
+        {
+            version = snapshot.Version,
+            productos = snapshot.Productos.Select(p => new
+            {
+                id = p.Id,
+                nombre = p.Nombre,
+                descripcion = p.Descripcion,
+                marca = p.Marca.Nombre,
+                categoria = p.Categoria.Nombre,
+                codigoCatalogo = p.CodigoCatalogo,
+                codigoLocal = p.CodigoLocal,
+                tipo = p.Tipo,
+                unidad = p.Unidad,
+                precio = p.PrecioEstimado,
+                imagen = p.Imagen,
+                activo = p.Activo,
+                colores = p.Colores.Select(c => new { id = c.Id, nombre = c.Nombre, codigoHex = c.CodigoHex })
+            })
+        });
     }
 
     [HttpPost("/Carrito/Agregar")]
@@ -221,6 +259,7 @@ public class PortalController : Controller
         else if (f["quitarImagen"] == "1") p.Imagen = "";
         try { catalogo.Guardar(p); }
         catch { if (nueva != "") BorrarImagen(nueva); throw; }
+        catalogoCache.Invalidar();
         if (anterior?.Imagen is { Length: > 0 } && anterior.Imagen != p.Imagen) BorrarImagen(anterior.Imagen);
         TempData["Mensaje"] = id == 0 ? "Producto creado correctamente." : "Producto actualizado correctamente.";
         return Redirect("/Catalogo");

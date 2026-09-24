@@ -42,3 +42,15 @@ Menú, identidad visual y adaptación de las vistas para computadora, tablet y c
 - Informar que los precios y el total son aproximados y deben consultarse.
 - Probar el circuito completo desde el catálogo hasta el PDF.
 - Preparar la aplicación para su publicación en la nube.
+
+## 8. Catálogo dinámico y búsqueda avanzada — en desarrollo
+
+- Descargar una versión liviana del catálogo una vez por sesión. **Completado en 8.1.**
+- Mantener SQL Server como fuente oficial de productos.
+- Filtrar y paginar en bloques de 30 desde el navegador. **Completado en 8.1.**
+- Cargar las imágenes únicamente cuando sean visibles. **Completado en 8.1.**
+- Incorporar criterios independientes por Producto, Código, Marca, Descripción, Tipo, Estado e Imagen. **Completado en 8.2.**
+- Combinar criterios mediante Y, O, Y NO y O NO. **Completado en 8.2.**
+- Actualizar los filtros simples, las reglas avanzadas y la paginación sin recargar la página. **Completado en 8.1 y 8.2.**
+- Invalidar la copia local cuando un administrador modifique el catálogo. **Completado en 8.1.**
+- Validar nuevamente en el servidor los productos agregados al carrito.
