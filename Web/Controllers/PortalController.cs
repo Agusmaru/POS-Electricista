@@ -176,8 +176,7 @@ public class PortalController : Controller
         var producto = catalogo.Obtener(Entero(f,"producto"));
         if (producto == null || !producto.Activo) throw new ArgumentException("El producto ya no está disponible.");
         if (!ImagenDisponible(producto.Imagen)) producto.Imagen = "";
-        var cantidad = Numero(f,"cantidad",true);
-        if (cantidad != decimal.Truncate(cantidad)) throw new ArgumentException("La cantidad debe ser un número entero.");
+        var cantidad = CantidadEntera(f,"cantidad");
         var color = catalogo.ResolverColor(producto, EnteroOpcional(f,"color"));
         var carrito = ObtenerCarrito();
         var existente = carrito.Items.FirstOrDefault(i => i.ProductoId == producto.Id && i.ColorId == color?.Id);
@@ -196,6 +195,13 @@ public class PortalController : Controller
     {
         var m = Modelo("Revisar presupuesto");
         m.Presupuesto = ObtenerCarrito();
+        var normalizado = false;
+        foreach (var item in m.Presupuesto.Items.Where(item => item.Cantidad != decimal.Truncate(item.Cantidad)))
+        {
+            item.Cantidad = Math.Clamp(decimal.Round(item.Cantidad, 0, MidpointRounding.AwayFromZero), 1m, 1000000m);
+            normalizado = true;
+        }
+        if (normalizado) GuardarCarrito(m.Presupuesto);
         foreach (var item in m.Presupuesto.Items) if (!ImagenDisponible(item.Imagen)) item.Imagen = "";
         m.CarritoCantidad = m.Presupuesto.Items.Count;
         return View(m);
@@ -213,7 +219,7 @@ public class PortalController : Controller
                 break;
             case "cantidad":
                 var item = carrito.Items.FirstOrDefault(i => i.ProductoId == Entero(f,"producto") && i.ColorId == ColorOpcional(f)) ?? throw new ArgumentException("El producto ya no está en el carrito.");
-                item.Cantidad = Numero(f,"cantidad",true);
+                item.Cantidad = CantidadEntera(f,"cantidad");
                 break;
             case "quitar":
                 var productoId = Entero(f,"producto"); var colorId = ColorOpcional(f);
@@ -224,6 +230,8 @@ public class PortalController : Controller
                 break;
             case "confirmar":
                 if (carrito.Items.Count == 0) throw new ArgumentException("Agregá al menos un producto antes de confirmar.");
+                if (carrito.Items.Any(item => item.Cantidad != decimal.Truncate(item.Cantidad)))
+                    throw new ArgumentException("Todas las cantidades del carrito deben ser números enteros.");
                 foreach (var renglon in carrito.Items) renglon.PrecioUnitario = null;
                 carrito.Local = "";
                 carrito.Observaciones ??= "";
@@ -401,6 +409,12 @@ public class PortalController : Controller
         return n;
     }
     private static decimal? Precio(IFormCollection f,string key) => string.IsNullOrWhiteSpace(f[key]) ? null : Numero(f,key);
+    private static decimal CantidadEntera(IFormCollection f,string key)
+    {
+        var cantidad = Numero(f,key,true);
+        if (cantidad != decimal.Truncate(cantidad)) throw new ArgumentException("La cantidad debe ser un número entero.");
+        return cantidad;
+    }
     private string ClaveCarrito => "carrito-" + usuario.Id;
     private string ObtenerTema()
     {
