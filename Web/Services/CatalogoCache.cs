@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Dominio;
 using Negocio;
+using Microsoft.Data.SqlClient;
 
 namespace Flux.Web.Services;
 
@@ -40,10 +41,24 @@ public sealed class CatalogoCache
 
     private void Recargar()
     {
-        todos = new CatalogoNegocio().Buscar(inactivos: true);
-        activos = todos.Where(producto => producto.Activo).ToList();
-        version = CalcularVersion(todos);
-        cargadoHastaUtc = DateTime.UtcNow.Add(Vigencia);
+        for (var intento = 1; ; intento++)
+        {
+            try
+            {
+                var nuevosTodos = new CatalogoNegocio().Buscar(inactivos: true);
+                var nuevosActivos = nuevosTodos.Where(producto => producto.Activo).ToList();
+                var nuevaVersion = CalcularVersion(nuevosTodos);
+                todos = nuevosTodos;
+                activos = nuevosActivos;
+                version = nuevaVersion;
+                cargadoHastaUtc = DateTime.UtcNow.Add(Vigencia);
+                return;
+            }
+            catch (SqlException ex) when (ex.Number == -2 && intento == 1)
+            {
+                Thread.Sleep(250);
+            }
+        }
     }
 
     private static string CalcularVersion(IEnumerable<ArticuloCatalogo> productos)

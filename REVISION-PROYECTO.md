@@ -16,6 +16,8 @@ Antes de considerar la versión como final, conviene corregir tres problemas pri
 
 **Prioridad:** alta.
 
+**Estado:** completado y probado localmente el 30 de septiembre de 2026. Las fotos se registran en `EC_Fotos` y se vinculan mediante `EC_ProductosFotos`. Quitar una foto del producto solamente elimina el vínculo y nunca borra el archivo físico. La migración fue ejecutada correctamente sobre la base local.
+
 Cuando se cambia o quita la imagen de un producto, el archivo físico anterior se elimina directamente desde `Web/Controllers/PortalController.cs`.
 
 El catálogo importado contiene archivos de imagen compartidos por varios productos. Por ejemplo, diferentes códigos de Argeflex utilizan el mismo archivo. Si se edita uno de esos productos, el archivo puede borrarse y dejar sin imagen a todos los demás productos que todavía lo referencian.
@@ -36,6 +38,8 @@ El catálogo importado contiene archivos de imagen compartidos por varios produc
 ### 2. El carrito puede confirmar productos que fueron desactivados
 
 **Prioridad:** alta.
+
+**Estado:** completado y probado localmente el 30 de septiembre de 2026. Al confirmar se vuelve a consultar SQL Server, se valida que cada producto siga activo y que el color continúe disponible, y se actualizan los datos guardados en la orden.
 
 La disponibilidad del producto y del color se comprueba cuando el producto se agrega al carrito. Sin embargo, cuando se confirma el carrito solamente se validan las cantidades.
 
@@ -358,4 +362,3 @@ Este error puede depender del usuario de Windows con el que se ejecutó la prueb
 1. Actualizar la identidad visual del PDF.
 2. Decidir si el precio permanecerá en el catálogo.
 3. Revisar textos anteriores que todavía no utilicen la marca Furnarius Energy.
-

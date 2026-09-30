@@ -1,4 +1,4 @@
-﻿-- Base independiente. No ejecuta ni modifica COMERCIO_DB.
+-- Base independiente. No ejecuta ni modifica COMERCIO_DB.
 IF DB_ID(N'ELECTRICISTAS_CORE10_DB') IS NULL CREATE DATABASE ELECTRICISTAS_CORE10_DB;
 GO
 USE ELECTRICISTAS_CORE10_DB;
@@ -19,6 +19,21 @@ CREATE TABLE EC_Productos(
  Tipo nvarchar(120) NOT NULL DEFAULT 'Sin clasificar', Unidad nvarchar(30) NOT NULL DEFAULT 'unidad',
  PrecioEstimado decimal(18,2) NOT NULL DEFAULT 0 CHECK(PrecioEstimado>=0), Imagen nvarchar(260) NOT NULL DEFAULT '', Activo bit NOT NULL DEFAULT 1,
  Origen nvarchar(250) NOT NULL, ClaveOrigen varchar(64) NULL);
+IF OBJECT_ID('EC_Fotos') IS NULL
+CREATE TABLE EC_Fotos(
+ Id int IDENTITY PRIMARY KEY, NombreArchivo nvarchar(260) NOT NULL,
+ FechaCarga datetime2 NOT NULL DEFAULT SYSUTCDATETIME(),
+ CONSTRAINT UQ_EC_Fotos_NombreArchivo UNIQUE(NombreArchivo));
+IF OBJECT_ID('EC_ProductosFotos') IS NULL
+CREATE TABLE EC_ProductosFotos(
+ ProductoId int NOT NULL REFERENCES EC_Productos(Id) ON DELETE CASCADE,
+ FotoId int NOT NULL REFERENCES EC_Fotos(Id), Orden int NOT NULL DEFAULT 1 CHECK(Orden>0),
+ EsPrincipal bit NOT NULL DEFAULT 0,
+ CONSTRAINT PK_EC_ProductosFotos PRIMARY KEY(ProductoId,FotoId));
+IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='UX_EC_ProductosFotos_Principal' AND object_id=OBJECT_ID('EC_ProductosFotos'))
+ CREATE UNIQUE INDEX UX_EC_ProductosFotos_Principal ON EC_ProductosFotos(ProductoId) WHERE EsPrincipal=1;
+IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='IX_EC_ProductosFotos_Foto' AND object_id=OBJECT_ID('EC_ProductosFotos'))
+ CREATE INDEX IX_EC_ProductosFotos_Foto ON EC_ProductosFotos(FotoId);
 IF OBJECT_ID('EC_Presupuestos') IS NULL
 CREATE TABLE EC_Presupuestos(
  Id int IDENTITY PRIMARY KEY, UsuarioId int NOT NULL REFERENCES EC_Usuarios(Id),

@@ -253,7 +253,7 @@
         q: text(filters.elements.namedItem('q')?.value).trim(),
         marca: text(filters.elements.namedItem('marca')?.value).trim(),
         tipo: text(filters.elements.namedItem('tipo')?.value).trim(),
-        inactivos: admin && filters.elements.namedItem('inactivos')?.value === 'true'
+        estado: admin ? (filters.elements.namedItem('estado')?.value || 'activos') : 'activos'
     });
     const filteredProducts = () => {
         const values = currentFilters();
@@ -262,7 +262,8 @@
         const type = normalize(values.tipo);
         const rules = validAdvancedRules();
         return products.filter(product => {
-            if (!values.inactivos && !product.activo) return false;
+            if (values.estado === 'activos' && !product.activo) return false;
+            if (values.estado === 'inactivos' && product.activo) return false;
             if (brand && normalize(product.marca) !== brand) return false;
             if (type && normalize(product.tipo) !== type) return false;
             const matchesSimpleSearch = !query || normalize([
@@ -278,11 +279,13 @@
         if (values.q) params.set('q', values.q);
         if (values.marca) params.set('marca', values.marca);
         if (values.tipo) params.set('tipo', values.tipo);
-        if (values.inactivos) params.set('inactivos', 'true');
+        if (admin && values.estado !== 'activos') params.set('estado', values.estado);
         if (view !== 'lista') params.set('vista', view);
         if (page > 1) params.set('pagina', String(page));
         const query = params.toString();
-        history.replaceState(null, '', `/Catalogo${query ? `?${query}` : ''}`);
+        const currentUrl = `/Catalogo${query ? `?${query}` : ''}`;
+        history.replaceState(null, '', currentUrl);
+        results.querySelectorAll('input[name="volver"]').forEach(input => { input.value = currentUrl; });
         document.querySelectorAll('.view-switch a').forEach(link => {
             const linkUrl = new URL(link.href, location.origin);
             const targetView = linkUrl.searchParams.get('vista') || 'lista';
@@ -473,7 +476,15 @@
         if (admin) {
             const edit = make('a', 'button edit-product', 'Editar');
             edit.href = `/EditarProducto?id=${encodeURIComponent(product.id)}`;
-            cell.append(edit);
+            const statusForm = make('form', 'product-status-form');
+            statusForm.method = 'post'; statusForm.action = '/Producto/Estado';
+            addHidden(statusForm, csrfName, csrf);
+            addHidden(statusForm, 'producto', text(product.id));
+            addHidden(statusForm, 'activo', product.activo ? '0' : '1');
+            addHidden(statusForm, 'volver', location.pathname + location.search);
+            const statusButton = make('button', `button product-status${product.activo ? ' dangertext' : ''}`, product.activo ? 'Desactivar' : 'Activar');
+            statusButton.type = 'submit'; statusForm.append(statusButton);
+            cell.append(edit, statusForm);
         }
         return cell;
     };
@@ -566,13 +577,13 @@
         debounceTimer = window.setTimeout(() => { page = 1; render(); }, 280);
     });
     filters.addEventListener('change', event => {
-        if (!['marca', 'tipo', 'inactivos'].includes(event.target.name) || !products.length) return;
+        if (!['marca', 'tipo', 'estado'].includes(event.target.name) || !products.length) return;
         page = 1; render();
     });
     filters.querySelector('[data-catalog-clear]')?.addEventListener('click', event => {
         event.preventDefault();
         ['q', 'marca', 'tipo'].forEach(name => { const field = filters.elements.namedItem(name); if (field) field.value = ''; });
-        const inactive = filters.elements.namedItem('inactivos'); if (inactive) inactive.value = 'false';
+        const state = filters.elements.namedItem('estado'); if (state) state.value = 'activos';
         advancedRows?.replaceChildren();
         reindexAdvancedRules(); updateAdvancedCount(); saveAdvancedRules();
         page = 1; render();

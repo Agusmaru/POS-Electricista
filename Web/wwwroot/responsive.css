@@ -391,9 +391,17 @@ html[data-theme="dark"] footer{border-color:var(--line)}
 }
 .image-editor{border:1px solid var(--line);border-radius:10px;padding:20px;margin:4px 0 24px;min-width:0}
 .image-editor legend{font-weight:700;padding:0 8px;color:var(--navy)}
-.image-editor-content{display:grid;grid-template-columns:160px minmax(0,1fr);gap:24px;align-items:start}
 .product-image-preview{width:160px;height:160px;border-radius:10px;object-fit:contain;background:#f1f4f7;border:1px solid var(--line)}
 .image-editor .check{margin-top:16px}
+.product-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:20px}
+.product-gallery-item{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#f8fafc}
+.product-gallery-item .product-image-preview{width:100%;height:150px}
+.gallery-primary,.gallery-remove{display:flex;align-items:center;gap:8px;font-weight:650}
+.gallery-remove{margin-top:0!important;color:#9b2820}
+.product-gallery-empty{padding:18px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);margin-bottom:20px;text-align:center}
+.image-upload{display:grid;gap:7px}
+html[data-theme="dark"] .product-gallery-item{background:#111c27;border-color:#40586c}
+html[data-theme="dark"] .product-gallery-empty{border-color:#40586c;color:#b7c7d4}
 @media(min-width:1101px){
  .catalog-mode-tarjetas{border:0;background:transparent;overflow:visible}
  .catalog-mode-tarjetas table,.catalog-mode-tarjetas tbody{display:block;width:100%}
@@ -418,7 +426,7 @@ html[data-theme="dark"] footer{border-color:var(--line)}
  .view-switch{width:100%}
  .view-switch .button{flex:1}
  .catalog-toolbar>.primary{width:100%}
- .image-editor-content{grid-template-columns:minmax(0,1fr)}
+ .product-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
  .product-image-preview{width:100%;height:220px}
  .catalog-mode-lista{border:0;background:transparent;overflow:visible}
  .catalog-mode-lista table,.catalog-mode-lista tbody{display:block;width:100%}
@@ -508,3 +516,8 @@ html[data-theme="dark"] .color-badge{background:#132230;border-color:#486176;col
  .catalog-add:has(.cable-color-select){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
  .catalog-add .cable-color-select{grid-column:1/-1;width:100%}
 }
+
+.product-status-form{margin:0}
+.product-status{min-height:40px}
+.catalog-mode-tarjetas .product-status-form,.catalog-mode-tarjetas .product-status{width:100%}
+@media(min-width:701px){.catalog-mode-lista .catalog-actions{min-width:380px}}

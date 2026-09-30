@@ -18,6 +18,7 @@ public class PortalModel
     public UsuarioCatalogo Usuario { get; set; }
     public List<ArticuloCatalogo> Productos { get; set; } = [];
     public List<string> Marcas { get; set; } = [];
+    public HashSet<string> ImagenesDisponibles { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<string> Tipos { get; set; } = [];
     public List<Presupuesto> Presupuestos { get; set; } = [];
     public List<UsuarioCatalogo> Usuarios { get; set; } = [];
@@ -31,7 +32,7 @@ public class PortalModel
     public string Rol { get; set; } = "";
     public string Estado { get; set; } = "";
     public string Orden { get; set; } = "";
-    public bool Inactivos { get; set; }
+    public string EstadoCatalogo { get; set; } = "activos";
     public int Pagina { get; set; } = 1;
     public int Paginas { get; set; } = 1;
     public int Total { get; set; }
@@ -58,7 +59,7 @@ public class PortalController : Controller
         this.catalogoCache = catalogoCache;
     }
     private const string ClaveTema = "tema";
-    private PortalModel Modelo(string titulo) => new() { Titulo = titulo, Usuario = usuario, Tema = ObtenerTema(), CarritoCantidad = usuario == null ? 0 : ObtenerCarrito(false)?.Items.Count ?? 0 };
+    private PortalModel Modelo(string titulo) => new() { Titulo = titulo, Usuario = usuario, Tema = ObtenerTema(), CarritoCantidad = usuario == null ? 0 : ObtenerCarrito(false)?.Items.Count ?? 0, Error = TempData["Error"] as string };
     private bool SolicitaJson() => Request.Headers.Accept.ToString().Contains("application/json", StringComparison.OrdinalIgnoreCase)
         || Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
@@ -121,15 +122,23 @@ public class PortalController : Controller
     }
 
     [HttpGet("/Catalogo")]
-    public IActionResult Catalogo(string q = "", string marca = "", string tipo = "", bool inactivos = false, int pagina = 1, string vista = "")
+    public IActionResult Catalogo(string q = "", string marca = "", string tipo = "", string estado = "activos", bool? inactivos = null, int pagina = 1, string vista = "")
     {
         q = (q ?? "").Trim(); marca = (marca ?? "").Trim(); tipo = (tipo ?? "").Trim();
+        estado = (estado ?? "activos").Trim().ToLowerInvariant();
+        if (inactivos == true && estado == "activos") estado = "todos";
+        if (!usuario.Admin || estado is not ("activos" or "inactivos" or "todos")) estado = "activos";
         if (q.Length > 250 || marca.Length > 120 || tipo.Length > 120) throw new ArgumentException("Los filtros son demasiado extensos.");
         vista = vista is "lista" or "tarjetas" ? vista : Request.Cookies["catalogo-vista"] ?? "lista";
         if (vista is not ("lista" or "tarjetas")) vista = "lista";
         Response.Cookies.Append("catalogo-vista", vista, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, IsEssential = true, MaxAge = TimeSpan.FromDays(365) });
         var snapshot = catalogoCache.Obtener(usuario.Admin);
-        var todos = snapshot.Productos.Where(p => usuario.Admin && inactivos || p.Activo).ToList();
+        var todos = estado switch
+        {
+            "inactivos" => snapshot.Productos.Where(p => !p.Activo).ToList(),
+            "todos" => snapshot.Productos.ToList(),
+            _ => snapshot.Productos.Where(p => p.Activo).ToList()
+        };
         var compare = CultureInfo.GetCultureInfo("es-AR").CompareInfo;
         var filtrados = todos.Where(p =>
             (q == "" || compare.IndexOf($"{p.Nombre} {p.Descripcion} {p.Marca.Nombre} {p.Categoria.Nombre} {p.CodigoCatalogo} {p.CodigoLocal} {p.Tipo}", q, CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) >= 0)
@@ -138,9 +147,10 @@ public class PortalController : Controller
         var m = Modelo("Materiales para tu obra");
         m.Total = filtrados.Count; m.Paginas = Math.Max(1, (int)Math.Ceiling(m.Total / 30m)); m.Pagina = Math.Clamp(pagina, 1, m.Paginas);
         m.Productos = filtrados.Skip((m.Pagina - 1) * 30).Take(30).ToList();
-        foreach (var producto in m.Productos) if (!ImagenDisponible(producto.Imagen)) producto.Imagen = "";
+        m.ImagenesDisponibles = m.Productos.Where(producto => ImagenDisponible(producto.Imagen))
+            .Select(producto => producto.Imagen).ToHashSet(StringComparer.OrdinalIgnoreCase);
         m.Marcas = todos.Select(p => p.Marca.Nombre).Distinct().Order().ToList(); m.Tipos = todos.Select(p => p.Tipo).Distinct().Order().ToList();
-        m.Q = q; m.Marca = marca; m.Tipo = tipo; m.Inactivos = usuario.Admin && inactivos; m.Vista = vista; m.CatalogoVersion = snapshot.Version;
+        m.Q = q; m.Marca = marca; m.Tipo = tipo; m.EstadoCatalogo = estado; m.Vista = vista; m.CatalogoVersion = snapshot.Version;
         return View(m);
     }
 
@@ -163,7 +173,7 @@ public class PortalController : Controller
                 tipo = p.Tipo,
                 unidad = p.Unidad,
                 precio = p.PrecioEstimado,
-                imagen = p.Imagen,
+                imagen = ImagenDisponible(p.Imagen) ? p.Imagen : "",
                 activo = p.Activo,
                 colores = p.Colores.Select(c => new { id = c.Id, nombre = c.Nombre, codigoHex = c.CodigoHex })
             })
@@ -232,7 +242,33 @@ public class PortalController : Controller
                 if (carrito.Items.Count == 0) throw new ArgumentException("Agregá al menos un producto antes de confirmar.");
                 if (carrito.Items.Any(item => item.Cantidad != decimal.Truncate(item.Cantidad)))
                     throw new ArgumentException("Todas las cantidades del carrito deben ser números enteros.");
-                foreach (var renglon in carrito.Items) renglon.PrecioUnitario = null;
+                var catalogoActual = catalogo.Buscar(inactivos: true).ToDictionary(producto => producto.Id);
+                var renglonesActualizados = new List<ItemPresupuesto>();
+                var problemas = new List<string>();
+                foreach (var renglon in carrito.Items)
+                {
+                    if (!catalogoActual.TryGetValue(renglon.ProductoId, out var productoActual) || !productoActual.Activo)
+                    {
+                        problemas.Add(renglon.Nombre + ": producto inactivo o inexistente");
+                        continue;
+                    }
+                    try
+                    {
+                        var colorActual = catalogo.ResolverColor(productoActual, renglon.ColorId ?? 0);
+                        var actualizado = PresupuestoNegocio.DesdeProducto(productoActual, renglon.Cantidad, null, renglon.Observaciones, colorActual);
+                        actualizado.Id = renglon.Id;
+                        renglonesActualizados.Add(actualizado);
+                    }
+                    catch (ArgumentException ex) { problemas.Add(renglon.Nombre + ": " + ex.Message); }
+                }
+                if (problemas.Count > 0)
+                {
+                    var detalle = string.Join("; ", problemas.Take(5));
+                    if (problemas.Count > 5) detalle += $"; y {problemas.Count - 5} producto(s) más";
+                    TempData["Error"] = "No se puede confirmar el carrito. Revisá estos materiales: " + detalle + ".";
+                    return Redirect("/Carrito");
+                }
+                carrito.Items = renglonesActualizados;
                 carrito.Local = "";
                 carrito.Observaciones ??= "";
                 int id = presupuestos.Guardar(carrito,usuario);
@@ -255,24 +291,43 @@ public class PortalController : Controller
         return m.Producto == null ? NotFound() : View(m);
     }
 
-    [HttpPost("/EditarProducto"), RequestSizeLimit(6 * 1024 * 1024)]
-    public async Task<IActionResult> GuardarProducto(IFormCollection f, IFormFile imagen, int id = 0)
+    [HttpPost("/EditarProducto"), RequestSizeLimit(45 * 1024 * 1024)]
+    public async Task<IActionResult> GuardarProducto(IFormCollection f, IFormFile[] imagenes, int id = 0)
     {
         if (!usuario.Admin) return StatusCode(403);
         var anterior = id == 0 ? null : catalogo.Obtener(id); if (id != 0 && anterior == null) return NotFound();
         var p = new ArticuloCatalogo { Id = id, Nombre = Texto(f,"nombre",250), Descripcion = Texto(f,"descripcion",1500), Marca = new() { Nombre = Texto(f,"marca",120) }, Categoria = new() { Nombre = Texto(f,"categoria",120) }, CodigoCatalogo = Texto(f,"codigo",160), CodigoLocal = Texto(f,"local",160), Tipo = Texto(f,"tipo",120), Unidad = Texto(f,"unidad",30), PrecioEstimado = Precio(f,"precio") ?? 0m, Imagen = anterior?.Imagen ?? "", Activo = f["activo"] == "1" };
         if (p.Tipo == "" || p.Unidad == "") throw new ArgumentException("Completá tipo y unidad.");
-        string nueva = "";
-        if (imagen is { Length: > 0 }) { nueva = await GuardarImagen(imagen); p.Imagen = nueva; }
-        else if (f["quitarImagen"] == "1") p.Imagen = "";
-        try { catalogo.Guardar(p); }
-        catch { if (nueva != "") BorrarImagen(nueva); throw; }
+        var nuevasSolicitadas = (imagenes ?? []).Where(x => x is { Length: > 0 }).ToList();
+        if (nuevasSolicitadas.Count > 8) throw new ArgumentException("Podés subir hasta 8 fotos por vez.");
+        var quitar = f["quitarFotos"].Select(x => int.TryParse(x,out var fotoId) && fotoId > 0 ? fotoId : 0).Where(x => x > 0).Distinct().ToList();
+        var restantes = anterior?.Fotos.Count(x => !quitar.Contains(x.Id)) ?? 0;
+        if (restantes + nuevasSolicitadas.Count > 12) throw new ArgumentException("Un producto puede tener hasta 12 fotos asociadas.");
+        var nuevas = new List<string>();
+        try
+        {
+            foreach (var archivo in nuevasSolicitadas) nuevas.Add(await GuardarImagen(archivo));
+            var productoId = catalogo.Guardar(p);
+            var principal = EnteroOpcional(f,"fotoPrincipal");
+            catalogo.GuardarFotos(productoId, nuevas, quitar, principal == 0 ? null : principal);
+        }
+        catch { foreach (var nueva in nuevas) BorrarImagen(nueva); throw; }
         catalogoCache.Invalidar();
-        if (anterior?.Imagen is { Length: > 0 } && anterior.Imagen != p.Imagen) BorrarImagen(anterior.Imagen);
         TempData["Mensaje"] = id == 0 ? "Producto creado correctamente." : "Producto actualizado correctamente.";
         return Redirect("/Catalogo");
     }
 
+    [HttpPost("/Producto/Estado")]
+    public IActionResult CambiarEstadoProducto(IFormCollection f)
+    {
+        if (!usuario.Admin) return StatusCode(403);
+        var activo = f["activo"] == "1";
+        catalogo.CambiarEstado(Entero(f,"producto"), activo);
+        catalogoCache.Invalidar();
+        TempData["Mensaje"] = activo ? "Producto activado correctamente." : "Producto desactivado correctamente.";
+        var volver = f["volver"].ToString();
+        return Url.IsLocalUrl(volver) ? LocalRedirect(volver) : Redirect("/Catalogo");
+    }
     [HttpGet("/Presupuestos")]
     public IActionResult Presupuestos(string q = "", string tipo = "", string orden = "recientes")
     {

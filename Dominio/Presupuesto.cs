@@ -14,7 +14,16 @@ namespace Dominio
         public string Imagen { get; set; } = "";
         public string Origen { get; set; }
         public List<ColorCatalogo> Colores { get; set; } = new List<ColorCatalogo>();
+        public List<FotoProducto> Fotos { get; set; } = new List<FotoProducto>();
         public bool RequiereColor { get { return Colores.Count > 0; } }
+    }
+
+    public class FotoProducto
+    {
+        public int Id { get; set; }
+        public string NombreArchivo { get; set; }
+        public int Orden { get; set; }
+        public bool EsPrincipal { get; set; }
     }
 
     public class ColorCatalogo
