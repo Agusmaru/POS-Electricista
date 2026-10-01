@@ -61,39 +61,57 @@
 })();
 
 (() => {
-    const buttons = document.querySelectorAll('[data-share-budget]');
-    const dialog = document.querySelector('[data-share-dialog]');
-    if (!buttons.length || !dialog) return;
-    const whatsapp = dialog.querySelector('[data-share-whatsapp]');
-    const email = dialog.querySelector('[data-share-email]');
+    const buttons = document.querySelectorAll('[data-share-request]');
+    const registerForm = document.querySelector('[data-share-register]');
+    if (!buttons.length || !registerForm || !window.fetch) return;
     const download = (blob, filename) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove();
         window.setTimeout(() => URL.revokeObjectURL(url), 30000);
     };
+    const register = async (id, channel) => {
+        const data = new FormData(registerForm);
+        data.set('id', id);
+        data.set('canal', channel);
+        const response = await fetch(registerForm.action, {
+            method: 'POST', body: data,
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (!response.ok) throw new Error('La solicitud se compartió, pero no se pudo actualizar su estado.');
+        const status = document.querySelector('[data-request-status]');
+        const detail = document.querySelector('[data-request-status-detail]');
+        if (status) {
+            status.textContent = 'Compartida';
+            status.classList.remove('inactive'); status.classList.add('active');
+        }
+        if (detail) detail.textContent = `Última acción: recién por ${channel === 'email' ? 'correo' : channel === 'whatsapp' ? 'WhatsApp' : 'el menú para compartir'}.`;
+    };
     buttons.forEach(button => button.addEventListener('click', async () => {
         const originalText = button.textContent;
-        button.disabled = true; button.textContent = 'Preparando PDF…';
+        const channel = button.dataset.channel;
+        const externalUrl = button.dataset.shareUrl;
+        let externalWindow = null;
+        if (channel === 'whatsapp') externalWindow = window.open('', '_blank');
+        button.disabled = true; button.textContent = 'Preparando…';
         try {
-            const id = button.dataset.budgetId, name = button.dataset.budgetName;
+            const id = button.dataset.requestId;
             const response = await fetch(`/DescargarPdf?id=${encodeURIComponent(id)}`);
             if (!response.ok) throw new Error('No se pudo generar el PDF.');
             const blob = await response.blob();
-            const filename = `orden-presupuesto-${String(id).padStart(6, '0')}.pdf`;
+            const filename = `solicitud-cotizacion-${String(id).padStart(6, '0')}.pdf`;
             download(blob, filename);
-            const file = new File([blob], filename, { type: 'application/pdf' });
-            const text = `Te comparto el presupuesto ${name} (Nº ${String(id).padStart(6, '0')}).`;
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                try { await navigator.share({ title: `Presupuesto ${name}`, text, files: [file] }); }
-                catch (error) { if (error.name !== 'AbortError') throw error; }
+            if (channel === 'whatsapp') {
+                if (externalWindow) externalWindow.location.href = externalUrl;
+                else window.location.href = externalUrl;
             } else {
-                whatsapp.href = `https://wa.me/?text=${encodeURIComponent(text + ' Adjuntá el PDF descargado en este mensaje.')}`;
-                email.href = `mailto:?subject=${encodeURIComponent('Presupuesto ' + name)}&body=${encodeURIComponent(text + '\n\nAdjuntá el PDF descargado a este correo.')}`;
-                dialog.showModal();
+                if (externalWindow) externalWindow.close();
+                window.location.href = externalUrl;
             }
+            await register(id, channel);
         } catch (error) {
-            window.alert(error.message || 'No se pudo preparar el presupuesto.');
+            if (externalWindow) externalWindow.close();
+            window.alert(error.message || 'No se pudo preparar la solicitud.');
         } finally {
             button.disabled = false; button.textContent = originalText;
         }
@@ -127,7 +145,7 @@
             if (!response.ok || !data.ok) throw new Error(data.error || 'No se pudo agregar el producto.');
             document.querySelectorAll('[data-cart-count]').forEach(badge => {
                 badge.textContent = data.cartCount;
-                badge.setAttribute('aria-label', `${data.cartCount} productos en el carrito`);
+                badge.setAttribute('aria-label', `${data.cartCount} materiales en la lista`);
                 badge.classList.toggle('is-empty', data.cartCount === 0);
             });
             form.querySelector('[name="cantidad"]').value = '1';
@@ -469,7 +487,7 @@
             quantity.min = '1'; quantity.max = '1000000'; quantity.step = '1';
             quantity.inputMode = 'numeric'; quantity.required = true;
             quantity.setAttribute('aria-label', `Cantidad de ${text(product.nombre)}`);
-            const button = make('button', 'primary', '+ Agregar');
+            const button = make('button', 'primary', '+ Agregar a lista');
             button.name = 'accion'; button.value = 'agregar';
             form.append(quantity, button); cell.append(form);
         }
@@ -502,11 +520,7 @@
         brandCell.dataset.label = 'Marca'; appendSmall(brandCell, 'catalog-brand-extra', text(product.tipo));
         const descriptionCell = make('td', 'product-description', text(product.descripcion));
         descriptionCell.dataset.label = 'Descripción'; appendSmall(descriptionCell, 'catalog-description-extra', `Unidad: ${text(product.unidad)}`);
-        const priceCell = make('td', 'right catalog-price', Number.isFinite(Number(product.precio))
-            ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Number(product.precio))
-            : 'A consultar');
-        priceCell.dataset.label = 'Precio';
-        row.append(productCell, codeCell, brandCell, descriptionCell, makeImageCell(product), priceCell, makeActions(product));
+        row.append(productCell, codeCell, brandCell, descriptionCell, makeImageCell(product), makeActions(product));
         return row;
     };
     const renderPagination = pages => {
@@ -531,7 +545,7 @@
         else {
             const row = document.createElement('tr');
             const cell = make('td', '', 'No hay productos con estos filtros.');
-            cell.colSpan = 7; row.append(cell); body.append(row);
+            cell.colSpan = 6; row.append(cell); body.append(row);
         }
         count.textContent = `${filtered.length} materiales`;
         renderPagination(pages);

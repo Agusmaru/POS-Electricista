@@ -1,12 +1,44 @@
 @model PortalModel
-@{var p=Model.Presupuesto;}
-<div class="intro"><div class="eyebrow">ORDEN / PRESUPUESTO Nº @p.Id.ToString("D6")</div><h1>@p.Nombre</h1><p>La orden quedó guardada. Podés ajustar sus materiales o descargar el PDF.</p></div>
-<div class="toolbar"><a href="/Presupuestos">← Volver a presupuestos</a>@if(p.Items.Count>0){<div class="budget-detail-actions"><a class="button primary" href="/DescargarPdf?id=@p.Id">Descargar PDF</a><button class="button budget-share" type="button" data-share-budget data-budget-id="@p.Id" data-budget-name="@p.Nombre">Descargar y enviar</button></div>}</div>
-<dialog class="share-dialog" data-share-dialog><form method="dialog"><button class="share-dialog-close quiet" aria-label="Cerrar">×</button><h2>PDF descargado</h2><p>Elegí cómo avisar que vas a compartir el presupuesto. Adjuntá el PDF que acaba de descargarse.</p><div class="share-dialog-actions"><a class="button primary" data-share-whatsapp target="_blank" rel="noopener">Enviar por WhatsApp</a><a class="button" data-share-email>Enviar por correo</a></div><button class="button" value="cancel">Cerrar</button></form></dialog>
-@if(Context.Request.Query["confirmar"]=="1"){
-<section class="alert danger">¿Eliminar este presupuesto del historial?<form method="post" action="/Presupuestos">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><input type="hidden" name="revision" value="@p.Revision"><button name="accion" value="eliminar">Sí, eliminar</button><a href="/Presupuesto?id=@p.Id">Cancelar</a></form></section>
+@{
+    var p = Model.Presupuesto;
+    var telefono = System.Text.RegularExpressions.Regex.Replace(Model.Proveedor.WhatsApp ?? "", @"\D", "");
+    var whatsappUrl = $"https://wa.me/{telefono}?text={Uri.EscapeDataString(Model.MensajeCompartir)}";
+    var asunto = Uri.EscapeDataString($"Solicitud de cotización Nº {p.Id:D6} - {p.Nombre}");
+    var correoUrl = $"mailto:{Model.Proveedor.Email}?subject={asunto}&body={Uri.EscapeDataString(Model.MensajeCompartir)}";
+    var compartida = string.Equals(p.EstadoSolicitud, "Compartida", StringComparison.OrdinalIgnoreCase);
 }
-@if(p.EsPrueba){<div class="alert">Documento de prueba para validar el funcionamiento del sistema.</div>}
+<div class="intro"><div class="eyebrow">SOLICITUD DE COTIZACIÓN Nº @p.Id.ToString("D6")</div><h1>@p.Nombre</h1><p>Revisá los materiales y compartí la solicitud con el proveedor cuando esté lista.</p></div>
+<div class="toolbar"><a href="/Presupuestos">← Volver a solicitudes</a></div>
+
+@if(Context.Request.Query["confirmar"]=="1"){
+<section class="alert danger">¿Eliminar esta solicitud del historial?<form method="post" action="/Presupuestos">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><input type="hidden" name="revision" value="@p.Revision"><button name="accion" value="eliminar">Sí, eliminar</button><a href="/Presupuesto?id=@p.Id">Cancelar</a></form></section>
+}
+@if(p.EsPrueba){<div class="alert">Documento de prueba para validar el funcionamiento del sistema. No debe enviarse como una solicitud real.</div>}
+
+@if(p.Items.Count>0){
+<section class="panel request-delivery @(Model.SolicitudNueva ? "request-ready" : "")" aria-labelledby="request-delivery-title">
+    <div class="request-delivery-head">
+        <div class="request-delivery-icon" aria-hidden="true">✓</div>
+        <div>
+            <div class="request-delivery-title-row">
+                <h2 id="request-delivery-title">@(Model.SolicitudNueva ? "Solicitud preparada correctamente" : "Enviar solicitud")</h2>
+                <span class="status @(compartida ? "active" : "inactive")" data-request-status>@(compartida ? "Compartida" : "Preparada")</span>
+            </div>
+            <p>Elegí cómo querés enviarla al proveedor.</p>
+            @if(compartida && p.CompartidaFecha.HasValue){<small data-request-status-detail>Última acción: @p.CompartidaFecha.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") por @((p.CanalCompartido ?? "").ToLowerInvariant() switch { "whatsapp" => "WhatsApp", "email" => "correo", _ => "el menú para compartir" }).</small>}
+            else{<small data-request-status-detail>La solicitud todavía no fue compartida.</small>}
+        </div>
+    </div>
+    <div class="request-delivery-actions">
+        <a class="button" href="/DescargarPdf?id=@p.Id">Descargar PDF</a>
+        <button class="button primary" type="button" data-share-request data-channel="whatsapp" data-share-url="@whatsappUrl" data-request-id="@p.Id">Enviar por WhatsApp</button>
+        <button class="button" type="button" data-share-request data-channel="email" data-share-url="@correoUrl" data-request-id="@p.Id">Enviar por correo</button>
+    </div>
+    <p class="request-delivery-note">Se descargará el PDF y se abrirá el mensaje preparado. Adjuntá el archivo descargado antes de enviarlo por WhatsApp o correo.</p>
+    <form method="post" action="/Solicitud/RegistrarCompartida" data-share-register hidden>@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><input type="hidden" name="canal" value=""></form>
+</section>
+}
+
 <section class="panel"><form method="post" action="/Presupuesto?id=@p.Id">@Html.AntiForgeryToken()<input type="hidden" name="revision" value="@p.Revision">
 <label>Obra / nombre de lista<input name="nombre" value="@p.Nombre" maxlength="160" required></label>
 <label>Observaciones generales<textarea name="observaciones" maxlength="1500" rows="2">@p.Observaciones</textarea></label><button name="accion" value="guardar">Guardar datos</button>
@@ -18,16 +50,16 @@
 @foreach(var a in Model.Productos){
 <article class="result"><div><strong>@a.Nombre</strong><small>@a.Marca.Nombre · @a.CodigoCatalogo · @a.Tipo</small><p>@a.Descripcion</p></div>
 <form method="post" action="/Presupuesto?id=@p.Id">@Html.AntiForgeryToken()<input type="hidden" name="revision" value="@p.Revision"><input type="hidden" name="producto" value="@a.Id">
-<div class="lineinputs">@if(a.RequiereColor){<label>Color<select name="color" required><option value="">Elegí un color</option>@foreach(var color in a.Colores){<option value="@color.Id">@color.Nombre</option>}</select></label>}<label>Cantidad (@a.Unidad)<input name="cantidad" type="number" min="0.001" max="1000000" step="0.001" value="1" required></label><label>Nota (opcional)<input name="nota" maxlength="500"></label><button class="primary" name="accion" value="agregar">Agregar</button></div>
+<div class="lineinputs">@if(a.RequiereColor){<label>Color<select name="color" required><option value="">Elegí un color</option>@foreach(var color in a.Colores){<option value="@color.Id">@color.Nombre</option>}</select></label>}<label>Cantidad (@a.Unidad)<input name="cantidad" type="number" min="1" max="1000000" step="1" inputmode="numeric" value="1" required></label><label>Nota (opcional)<input name="nota" maxlength="500"></label><button class="primary" name="accion" value="agregar">Agregar a solicitud</button></div>
 </form></article>
 }
 @if(Model.Q==""){<p class="muted">Escribí un nombre, marca, tipo o código para buscar otro material.</p>}else if(Model.Total==0){<p>No hay coincidencias en el catálogo activo.</p>}
 </div></section>
-<section class="panel"><h2>Materiales seleccionados <span class="tag">@p.Items.Count renglones</span></h2>
+<section class="panel"><h2>Materiales de la solicitud <span class="tag">@p.Items.Count @(p.Items.Count==1?"renglón":"renglones")</span></h2>
 @foreach(var item in p.Items){
 <article class="result"><div><strong>@item.Nombre</strong>@if(!string.IsNullOrWhiteSpace(item.ColorNombre)){<span class="color-badge" data-color="@item.ColorNombre"><span aria-hidden="true"></span>@item.ColorNombre</span>}<small>@item.Marca · @item.CodigoCatalogo · Código interno: @(string.IsNullOrEmpty(item.CodigoLocal)?"A consultar":item.CodigoLocal)</small><p>@item.Descripcion</p></div>
 <form method="post" action="/Presupuesto?id=@p.Id">@Html.AntiForgeryToken()<input type="hidden" name="revision" value="@p.Revision"><input type="hidden" name="item" value="@item.Id">
-<div class="lineinputs"><label>Cantidad (@item.Unidad)<input name="cantidad" type="number" min="0.001" max="1000000" step="0.001" value="@PortalModel.Numero(item.Cantidad)" required></label><label>Observaciones<input name="nota" value="@item.Observaciones" maxlength="500"></label><button name="accion" value="item">Guardar</button><button class="quiet dangertext" name="accion" value="quitar" formnovalidate>Quitar</button></div>
+<div class="lineinputs"><label>Cantidad (@item.Unidad)<input name="cantidad" type="number" min="1" max="1000000" step="1" inputmode="numeric" value="@PortalModel.Numero(item.Cantidad)" required></label><label>Observaciones<input name="nota" value="@item.Observaciones" maxlength="500"></label><button name="accion" value="item">Guardar</button><button class="quiet dangertext" name="accion" value="quitar" formnovalidate>Quitar</button></div>
 </form></article>
 }
 @if(p.Items.Count==0){<p>Agregá tu primer material desde el buscador.</p>}

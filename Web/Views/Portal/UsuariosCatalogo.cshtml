@@ -1,5 +1,5 @@
 @model PortalModel
-<div class="intro"><div class="eyebrow">ADMINISTRACIÓN / ACCESOS</div><h1>Usuarios</h1><p>Gestioná quién puede administrar el catálogo y preparar presupuestos.</p></div>
+<div class="intro"><div class="eyebrow">ADMINISTRACIÓN / ACCESOS</div><h1>Usuarios</h1><p>Gestioná quién puede administrar el catálogo y preparar solicitudes de cotización.</p></div>
 <div class="toolbar"><span class="count">@Model.Total usuarios</span><a class="button primary" href="/UsuariosCatalogo?nuevo=true">+ Nuevo usuario</a></div>
 <form class="filters" method="get" action="/UsuariosCatalogo">
 <label>Nombre o correo<input name="q" value="@Model.Q" maxlength="200"></label>

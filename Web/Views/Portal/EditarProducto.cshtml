@@ -1,6 +1,6 @@
 @model PortalModel
 @{var p=Model.Producto;}
-<div class="intro"><div class="eyebrow">ADMINISTRACIÓN</div><h1>@Model.Titulo</h1><p>El precio puede quedar vacío hasta confirmarlo. Los presupuestos guardados conservan sus valores.</p></div>
+<div class="intro"><div class="eyebrow">ADMINISTRACIÓN</div><h1>@Model.Titulo</h1><p>Actualizá la información, disponibilidad y fotos del material.</p></div>
 <section class="panel product-editor"><form method="post" enctype="multipart/form-data" action="/EditarProducto?id=@p.Id">@Html.AntiForgeryToken()
 <div class="grid2">
 <label>Producto<input name="nombre" value="@p.Nombre" maxlength="250" required></label>
@@ -10,7 +10,6 @@
 <label>Tipo<input name="tipo" value="@p.Tipo" maxlength="120" required></label>
 <label>Familia / categoría<input name="categoria" value="@p.Categoria.Nombre" maxlength="120"></label>
 <label>Unidad (unidad, m, rollo...)<input name="unidad" value="@p.Unidad" maxlength="30" required></label>
-<label>Precio estimado ARS<input name="precio" type="number" min="0" max="1000000000" step="0.01" value="@PortalModel.Numero(p.PrecioEstimado)"></label>
 </div>
 <label>Descripción<textarea name="descripcion" maxlength="1500" rows="3">@p.Descripcion</textarea></label>
 <fieldset class="image-editor"><legend>Fotos del producto</legend>

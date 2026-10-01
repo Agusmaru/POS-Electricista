@@ -39,7 +39,9 @@ CREATE TABLE EC_Presupuestos(
  Id int IDENTITY PRIMARY KEY, UsuarioId int NOT NULL REFERENCES EC_Usuarios(Id),
  Nombre nvarchar(160) NOT NULL, Local nvarchar(200) NOT NULL DEFAULT '', Observaciones nvarchar(1500) NOT NULL DEFAULT '',
  Fecha datetime2 NOT NULL DEFAULT SYSUTCDATETIME(), EsPrueba bit NOT NULL DEFAULT 0,
- Revision int NOT NULL DEFAULT 1, Activo bit NOT NULL DEFAULT 1);
+ Revision int NOT NULL DEFAULT 1, Activo bit NOT NULL DEFAULT 1,
+ EstadoSolicitud varchar(20) NOT NULL DEFAULT 'Preparada' CHECK(EstadoSolicitud IN ('Preparada','Compartida')),
+ CompartidaFecha datetime2 NULL, CanalCompartido varchar(20) NULL);
 IF OBJECT_ID('EC_Items') IS NULL
 CREATE TABLE EC_Items(
  Id int IDENTITY PRIMARY KEY, PresupuestoId int NOT NULL REFERENCES EC_Presupuestos(Id),

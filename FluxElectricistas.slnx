@@ -1,1 +1,2 @@
-<Solution><Project Path="Dominio/Dominio.csproj"/><Project Path="Negocio/Negocio.csproj"/><Project Path="Web/Web.csproj"/></Solution>
+<Solution><Project Path="Dominio/Dominio.csproj" /><Project Path="Negocio/Negocio.csproj" />
+  <Project Path="Pruebas/Pruebas.csproj" /><Project Path="Web/Web.csproj" /></Solution>

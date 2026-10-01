@@ -1,7 +1,7 @@
 namespace Dominio;
 
-// Se conserva la identidad del producto y se retiran los campos de stock/precio
-// del antiguo POS. Los importes del catálogo y del presupuesto usan decimal.
+// Se conserva la identidad del producto y se retiran los campos de stock y precio
+// del antiguo POS.
 public class Producto
 {
     public int Id { get; set; }

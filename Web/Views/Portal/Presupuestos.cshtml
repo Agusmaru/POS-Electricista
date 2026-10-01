@@ -1,31 +1,33 @@
 @model PortalModel
-@{ var normales = Model.Presupuestos.Count(p => !p.EsPrueba); var pruebas = Model.Presupuestos.Count(p => p.EsPrueba); }
-<div class="intro"><div class="eyebrow">HISTORIAL DE OBRAS</div><h1>Presupuestos</h1><p>Buscá, reutilizá y descargá las órdenes generadas para cada obra.</p></div>
-
-<section class="panel budget-start"><div><span class="budget-start-icon" aria-hidden="true">＋</span><div><h2>Crear un nuevo presupuesto</h2><p>Elegí materiales en el catálogo, revisá las cantidades y generá la orden.</p></div></div><a class="button primary" href="/Catalogo">Explorar catálogo</a></section>
-
-<section class="budget-overview" aria-label="Resumen del historial">
-<div><span>Resultados</span><strong>@Model.Total</strong></div><div><span>Presupuestos</span><strong>@normales</strong></div><div><span>De prueba</span><strong>@pruebas</strong></div>
-</section>
-
+<div class="intro"><div class="eyebrow">HISTORIAL DE SOLICITUDES</div><h1>Solicitudes</h1><p>Buscá, reutilizá y descargá las solicitudes de cotización de cada obra.</p></div>
+<section class="panel budget-start"><div><span class="budget-start-icon" aria-hidden="true">＋</span><div><h2>Nueva solicitud</h2><p>Armá una lista desde el catálogo y preparala para enviarla al proveedor.</p></div></div><a class="button primary" href="/Catalogo">Elegir materiales</a></section>
+<div class="budget-overview" aria-label="Resumen de solicitudes">
+<div><span>Resultados</span><strong>@Model.Total</strong></div><div><span>Solicitudes</span><strong>@Model.PresupuestosNormales</strong></div><div><span>De prueba</span><strong>@Model.PresupuestosPrueba</strong></div>
+</div>
 <form class="filters budget-filters" method="get" action="/Presupuestos">
-<label>Buscar por obra, número o responsable<input name="q" value="@Model.Q" maxlength="160" placeholder="Ej.: Local Centro o 000125"></label>
-<label>Tipo<select name="tipo"><option value="">Todos</option><option value="normal" selected="@(Model.Tipo=="normal")">Presupuestos</option><option value="prueba" selected="@(Model.Tipo=="prueba")">Pruebas</option></select></label>
-<label>Ordenar<select name="orden"><option value="recientes" selected="@(Model.Orden=="recientes")">Más recientes</option><option value="antiguos" selected="@(Model.Orden=="antiguos")">Más antiguos</option><option value="nombre" selected="@(Model.Orden=="nombre")">Nombre de obra</option></select></label>
+<label>Buscar por número, obra o asesor<input name="q" value="@Model.Q" maxlength="160" placeholder="Ej.: 000123, depósito o Agustín"></label>
+<label>Tipo<select name="tipo"><option value="">Todos</option><option value="normal" selected="@(Model.Tipo=="normal")">Solicitudes</option><option value="prueba" selected="@(Model.Tipo=="prueba")">Pruebas</option></select></label>
+<label>Orden<select name="orden"><option value="recientes" selected="@(Model.Orden=="recientes")">Más recientes</option><option value="antiguos" selected="@(Model.Orden=="antiguos")">Más antiguas</option><option value="nombre" selected="@(Model.Orden=="nombre")">Nombre de obra</option></select></label>
 <button class="primary">Aplicar</button>@if(Model.Q!="" || Model.Tipo!="" || Model.Orden!="recientes"){<a href="/Presupuestos">Limpiar</a>}
 </form>
-
 @if(Model.Presupuestos.Count>0){
-<section class="budget-list" aria-label="Presupuestos guardados">
+<section class="budget-list" aria-label="Solicitudes guardadas">
 @foreach(var p in Model.Presupuestos){
+    var compartida = string.Equals(p.EstadoSolicitud,"Compartida",StringComparison.OrdinalIgnoreCase);
 <article class="panel budget-card">
-<header class="budget-card-head"><span class="budget-number">Nº @p.Id.ToString("D6")</span><time datetime="@p.Fecha.ToString("O")">@p.Fecha.AddHours(-3).ToString("dd/MM/yyyy · HH:mm")</time></header>
-<div class="budget-card-body"><h2><a href="/Presupuesto?id=@p.Id">@p.Nombre</a></h2><div class="budget-meta"><span><small>Preparó</small><strong>@p.Autor</strong></span><span><small>Tipo</small>@if(p.EsPrueba){<strong class="status test">Prueba</strong>}else{<strong class="status active">Presupuesto</strong>}</span></div></div>
-<footer class="budget-card-actions"><a class="button primary" href="/Presupuesto?id=@p.Id">Abrir detalle</a><a class="button" href="/DescargarPdf?id=@p.Id">Descargar PDF</a><button class="button budget-share" type="button" data-share-budget data-budget-id="@p.Id" data-budget-name="@p.Nombre">Descargar y enviar</button><form method="post" action="/Presupuestos">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><button name="accion" value="duplicar">Duplicar</button></form><a class="button dangertext" href="/Presupuesto?id=@p.Id&confirmar=1">Eliminar</a></footer>
+<header class="budget-card-head"><span class="budget-number">SOLICITUD Nº @p.Id.ToString("D6")</span><time datetime="@p.Fecha.ToString("O")">@p.Fecha.ToString("dd/MM/yyyy HH:mm")</time></header>
+<div class="budget-card-body"><h2><a href="/Presupuesto?id=@p.Id">@p.Nombre</a></h2><div class="budget-meta"><span><small>Preparada por</small><strong>@p.Autor</strong></span><span><small>Estado</small><span class="status @(p.EsPrueba?"test":compartida?"active":"inactive")">@(p.EsPrueba?"Prueba":compartida?"Compartida":"Preparada")</span></span></div>
+@if(compartida && p.CompartidaFecha.HasValue){<p class="budget-shared-detail">Última acción: @p.CompartidaFecha.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") · @((p.CanalCompartido??"").ToLowerInvariant() switch { "whatsapp" => "WhatsApp", "email" => "Correo", _ => "Compartir" })</p>}
+</div>
+<footer class="budget-card-actions"><a class="button primary" href="/Presupuesto?id=@p.Id">Abrir solicitud</a><a class="button" href="/DescargarPdf?id=@p.Id">Descargar PDF</a><form method="post" action="/Presupuestos">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@p.Id"><button name="accion" value="duplicar">Duplicar</button></form><a class="button dangertext" href="/Presupuesto?id=@p.Id&confirmar=1">Eliminar</a></footer>
 </article>
 }
-<dialog class="share-dialog" data-share-dialog><form method="dialog"><button class="share-dialog-close quiet" aria-label="Cerrar">×</button><h2>PDF descargado</h2><p>Elegí cómo avisar que vas a compartir el presupuesto. Adjuntá el PDF que acaba de descargarse.</p><div class="share-dialog-actions"><a class="button primary" data-share-whatsapp target="_blank" rel="noopener">Enviar por WhatsApp</a><a class="button" data-share-email>Enviar por correo</a></div><button class="button" value="cancel">Cerrar</button></form></dialog>
 </section>
+<nav class="pagination" aria-label="Páginas de solicitudes">
+@if(Model.Pagina > 1){<a class="button" href="@Url.Action("Presupuestos",new {q=Model.Q,tipo=Model.Tipo,orden=Model.Orden,pagina=Model.Pagina-1})">← Anterior</a>}
+<span>Página @Model.Pagina de @Model.Paginas</span>
+@if(Model.Pagina < Model.Paginas){<a class="button" href="@Url.Action("Presupuestos",new {q=Model.Q,tipo=Model.Tipo,orden=Model.Orden,pagina=Model.Pagina+1})">Siguiente →</a>}
+</nav>
 }else{
-<section class="panel budget-empty"><div aria-hidden="true">📄</div><h2>No encontramos presupuestos</h2><p>@(Model.Q!="" || Model.Tipo!="" ? "Probá con otros términos o limpiá los filtros." : "Creá el primero agregando materiales desde el catálogo.")</p>@if(Model.Q!="" || Model.Tipo!=""){<a class="button" href="/Presupuestos">Limpiar filtros</a>}else{<a class="button primary" href="/Catalogo">Ir al catálogo</a>}</section>
+<section class="panel budget-empty"><div aria-hidden="true">📄</div><h2>No encontramos solicitudes</h2><p>@(Model.Q!="" || Model.Tipo!="" ? "Probá con otros términos o limpiá los filtros." : "Creá la primera agregando materiales desde el catálogo.")</p>@if(Model.Q!="" || Model.Tipo!=""){<a class="button" href="/Presupuestos">Limpiar filtros</a>}else{<a class="button primary" href="/Catalogo">Ir al catálogo</a>}</section>
 }

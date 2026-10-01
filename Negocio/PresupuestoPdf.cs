@@ -43,14 +43,15 @@ namespace Negocio
         private void Nueva(Presupuesto p,bool tabla=true)
         {
             pagina=new StringBuilder();paginas.Add(pagina);
-            Rect(0,0,842,7,"0.08 0.17 0.26");
-            Texto(32,35,"ELECTRICIDAD | CATÁLOGO PROFESIONAL",11,true,"0.08 0.17 0.26");
-            Texto(32,62,"Orden de materiales",20,true);
-            var title=Wrap(p.Nombre,760,11);float ty=82;foreach(var line in title){Texto(32,ty,line,11,true);ty+=14;}
-            Texto(32,ty+3,"Nº "+p.Id.ToString("D6")+"   |   "+p.Fecha.AddHours(-3).ToString("dd/MM/yyyy"),9);
+            Rect(0,0,842,7,"1 0.38 0.05");
+            Texto(32,35,"FURNARIUS ENERGY | ENERGÍA RENOVABLE",11,true,"1 0.38 0.05");
+            Texto(32,62,"Solicitud de cotización de materiales",20,true);
+            var title=Wrap("Obra: "+p.Nombre,760,11);float ty=86;foreach(var line in title){Texto(32,ty,line,11,true);ty+=14;}
+            Texto(32,ty+3,"Solicitud Nº "+p.Id.ToString("D6")+"   |   Fecha: "+p.Fecha.AddHours(-3).ToString("dd/MM/yyyy"),9);
             ty+=20;
-            foreach(var line in Wrap("Preparó: "+p.Autor,770,9)){Texto(32,ty,line);ty+=12;}
-            if(p.EsPrueba){Rect(32,ty-1,778,23,"1 0.94 0.79");Texto(40,ty+14,"DOCUMENTO DE PRUEBA - No usar como orden real.",9,true);ty+=32;}
+            var solicitante="Solicitante: "+p.Autor+(string.IsNullOrWhiteSpace(p.SolicitanteEmail)?"":"   |   "+p.SolicitanteEmail);
+            foreach(var line in Wrap(solicitante,770,9)){Texto(32,ty,line);ty+=12;}
+            if(p.EsPrueba){Rect(32,ty-1,778,23,"1 0.94 0.79");Texto(40,ty+14,"DOCUMENTO DE PRUEBA - No enviar como solicitud real.",9,true);ty+=32;}
             y=ty+5;
             if(tabla)Cabecera();
         }
@@ -90,6 +91,8 @@ namespace Negocio
                 y+=16;Texto(32,y,"OBSERVACIONES",9,true);y+=15;
                 foreach(var line in notes){if(y>500)Nueva(p,false);Texto(32,y,line,9);y+=13;}
             }
+            if(y+40>505)Nueva(p,false);
+            y+=20;Texto(32,y,"Por favor, cotizar los materiales detallados.",10,true);
             for(int i=0;i<paginas.Count;i++)
             {pagina=paginas[i];Rect(32,533,778,1,"0.8 0.85 0.85");float fy=548;foreach(var line in Wrap(Presupuesto.Aviso,714,8)){Texto(32,fy,line,8);fy+=11;}Texto(761,568,(i+1)+" / "+paginas.Count,8);}
             return Serializar();

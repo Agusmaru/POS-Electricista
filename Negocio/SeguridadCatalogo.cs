@@ -9,6 +9,7 @@ namespace Negocio
 {
     public class SeguridadCatalogo
     {
+        private static readonly string HashFicticio = Hash("Verificacion-Ficticia-2026");
         public static string Hash(string password)
         {
             if (password == null || password.Length < 12 || password.Length > 128) throw new ArgumentException("La contraseña debe tener entre 12 y 128 caracteres.");
@@ -49,7 +50,15 @@ namespace Negocio
             {
                 int id; string hash;
                 using(var cmd=CatalogoDatos.Comando(c,"SELECT Id,PasswordHash FROM EC_Usuarios WHERE Email=@e AND Activo=1 AND (BloqueadoHasta IS NULL OR BloqueadoHasta<SYSUTCDATETIME())","@e",email))
-                using(var r=cmd.ExecuteReader()){if(!r.Read())return null;id=(int)r["Id"];hash=(string)r["PasswordHash"];}
+                using(var r=cmd.ExecuteReader())
+                {
+                    if(!r.Read())
+                    {
+                        Verificar(password,HashFicticio);
+                        return null;
+                    }
+                    id=(int)r["Id"];hash=(string)r["PasswordHash"];
+                }
                 bool ok=Verificar(password,hash);
                 using(var cmd=CatalogoDatos.Comando(c,ok?"UPDATE EC_Usuarios SET Fallos=0,BloqueadoHasta=NULL WHERE Id=@id":"UPDATE EC_Usuarios SET Fallos=CASE WHEN Fallos>=4 THEN 0 ELSE Fallos+1 END,BloqueadoHasta=CASE WHEN Fallos>=4 THEN DATEADD(minute,15,SYSUTCDATETIME()) ELSE NULL END WHERE Id=@id","@id",id))cmd.ExecuteNonQuery();
                 return ok?Obtener(id):null;
