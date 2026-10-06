@@ -1,0 +1,32 @@
+@model PortalModel
+<link rel="stylesheet" href="~/comercial.css" asp-append-version="true">
+<script src="~/comercial.js" asp-append-version="true" defer></script>
+<div class="intro"><div class="eyebrow">PRESUPUESTO COMERCIAL · USD</div><h1>Generar Presupuesto</h1><p>Editá los datos y las filas, revisá los importes y descargá el PDF.</p></div>
+<form id="comercial-nuevo" action="/GenerarPresupuesto/Nuevo" method="post">@Html.AntiForgeryToken()<button type="submit">Nuevo presupuesto</button></form>
+<form id="comercial-form" action="/GenerarPresupuesto" method="post">
+@Html.AntiForgeryToken()
+<input type="hidden" id="comercial-inicial" value="@System.Text.Json.JsonSerializer.Serialize(Model.Comercial)">
+<div class="alert">El número se asigna automáticamente. Completá los datos del cliente y revisá los conceptos antes de enviarlo.</div>
+<section class="panel"><h2>Datos del presupuesto</h2><div class="grid2">
+<label>Número<input data-field="Numero" maxlength="250" readonly required aria-readonly="true"></label>
+<label>Fecha<input data-field="Fecha" type="date" required></label>
+<label>Cliente<input data-field="Cliente" maxlength="250" required></label>
+<label>CUIT<input data-field="Cuit" maxlength="250"></label>
+<label>Domicilio<input data-field="Domicilio" maxlength="250"></label>
+<label>Localidad<input data-field="Localidad" maxlength="250"></label>
+</div><label>Asunto<input data-field="Asunto" maxlength="250" required></label>
+<label>Contactos de Furnarius<textarea data-field="Contactos" maxlength="1500" rows="3"></textarea></label></section>
+<section class="panel"><div class="actions"><h2>Artículos y servicios</h2><button type="button" id="comercial-add">+ Añadir fila</button></div>
+<p class="muted">Precios sin IVA en dólares. Arrastrá desde ≡ para ordenar las filas, o usá los botones Subir y Bajar.</p>
+<p id="comercial-empty" class="muted">Todavía no hay artículos ni servicios. Usá «Añadir fila» para comenzar.</p>
+<div id="comercial-rows"></div></section>
+<section class="panel"><h2>Mano de obra y condiciones</h2><div class="grid2">
+<label>Descripción de mano de obra<input data-field="ManoObraDescripcion" maxlength="250"></label>
+<label>Importe final de mano de obra (USD)<input data-field="ManoObra" type="number" min="0" max="100000000" step="0.01" required></label>
+</div><p class="muted">Este importe se suma al final, como en el modelo. Si necesitás discriminar su IVA, cargala como una fila y dejá este importe en cero.</p>
+<label>Condiciones comerciales<textarea data-field="Condiciones" maxlength="1500" rows="3"></textarea></label>
+<label>Nota al pie<textarea data-field="Nota" maxlength="1500" rows="4"></textarea></label></section>
+<section class="panel comercial-summary"><div><span>Neto de filas</span><strong id="comercial-neto"></strong></div><div><span>IVA de filas</span><strong id="comercial-iva"></strong></div><div><span>Total con mano de obra</span><strong id="comercial-total"></strong></div></section>
+<div class="actions comercial-actions"><button type="button" data-comercial-action="guardar">Guardar borrador</button><button type="button" data-comercial-action="preview">Vista previa PDF</button><button class="primary" type="button" data-comercial-action="pdf">Descargar PDF</button></div>
+<p id="comercial-status" role="status" aria-live="polite">El PDF es un presupuesto comercial, no una factura fiscal.</p>
+</form>

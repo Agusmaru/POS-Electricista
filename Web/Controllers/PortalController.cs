@@ -27,6 +27,7 @@ public class PortalModel
     public UsuarioCatalogo UsuarioEditado { get; set; }
     public ArticuloCatalogo Producto { get; set; }
     public Presupuesto Presupuesto { get; set; }
+    public PresupuestoComercial Comercial { get; set; }
     public int CarritoCantidad { get; set; }
     public string Q { get; set; } = "";
     public string Marca { get; set; } = "";
@@ -51,7 +52,7 @@ public class PortalModel
 }
 
 [Authorize]
-public class PortalController : Controller
+public partial class PortalController : Controller
 {
     private readonly CatalogoNegocio catalogo = new();
     private readonly PresupuestoNegocio presupuestos = new();

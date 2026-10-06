@@ -7,7 +7,7 @@
 <a class="skip-link" href="#contenido">Ir al contenido</a>
 <form id="theme-form" method="post" action="/Tema" hidden>@Html.AntiForgeryToken()<input type="hidden" name="volver" value="@volverTema"></form>
 <header class="app-header">
-    <a class="brand" href="/Catalogo" aria-label="Furnarius Energy, ir al catálogo"><img class="brand-logo" src="~/img/furnarius-energy-logo.jpg" alt="Furnarius Energy - Energía renovable" asp-append-version="true"></a>
+    <a class="brand" href="/Catalogo" aria-label="Furnarius Energy, ir al catálogo"><img class="brand-logo" src="~/img/furnarius-energy-logo.png" alt="Furnarius Energy - Energía renovable" asp-append-version="true"></a>
     @if (Model.Usuario != null)
     {
         <div class="mobile-header-actions">
@@ -18,6 +18,7 @@
         <nav aria-label="Navegación principal">
         <span class="nav-caption">ESPACIO DE TRABAJO</span>
         <a href="/Catalogo" aria-current="@(route == "/Catalogo" ? "page" : null)">Catálogo</a><a class="cart-nav" href="/Carrito" aria-current="@(route == "/Carrito" ? "page" : null)">Lista de materiales <span class="cart-badge @(Model.CarritoCantidad == 0 ? "is-empty" : "")" data-cart-count aria-label="@Model.CarritoCantidad materiales en la lista">@Model.CarritoCantidad</span></a><a href="/Presupuestos" aria-current="@(route.StartsWith("/Presupuesto") ? "page" : null)">Solicitudes</a>
+        <a href="/GenerarPresupuesto" aria-current="@(route == "/GenerarPresupuesto" ? "page" : null)">Generar Presupuesto</a>
         @if (Model.Usuario.Admin) { <a href="/EditarProducto" aria-current="@(route == "/EditarProducto" ? "page" : null)">Nuevo producto</a><a href="/UsuariosCatalogo" aria-current="@(route == "/UsuariosCatalogo" ? "page" : null)">Usuarios</a> }
         </nav>
         <div class="theme-control"><button class="theme-toggle" type="submit" form="theme-form" name="tema" value="@temaSiguiente" role="switch" aria-checked="@temaOscuro.ToString().ToLowerInvariant()" data-theme-toggle><span class="theme-icon" aria-hidden="true">@(temaOscuro ? "☀" : "☾")</span><span>Modo oscuro</span><span class="theme-switch" aria-hidden="true"><span></span></span></button></div>
